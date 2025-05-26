@@ -1,0 +1,25 @@
+echo "🐶 Husky: Running Biome checks before commit..."
+bun run check:biome
+
+if [ $? -ne 0 ]; then
+  echo "❌ Biome checks failed. Please fix the issues and try committing again."
+  exit 1
+fi
+echo "✅ Biome checks passed! Proceeding with commit..."
+
+# mainとdevブランチへのコミットを制限
+echo "🐶 Husky: Checking current branch name..."
+
+current_branch=$(git symbolic-ref --short HEAD)
+
+PROTECTED_BRANCHES="main develop dev"
+
+for protected_branch in $PROTECTED_BRANCHES; do
+  if [ "$current_branch" = "$protected_branch" ]; then
+    echo "❌ ERROR: Direct commits to the '$current_branch' branch are not allowed!"
+    echo "Please create a new feature branch (e.g., feat/your-feature-name) and make your commits there."
+    exit 1 # コミットを中止
+  fi
+done
+
+echo "✅ Branch check passed. Okay to commit to '$current_branch'."

@@ -1,0 +1,19 @@
+{
+	"name": "notipal",
+	"version": "0.1.0",
+	"private": true,
+	"dependencies": {},
+	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"husky": "^9.1.7",
+		"turbo": "^2.5.3"
+	},
+	"scripts": {
+		"dev": "turbo run dev --parallel",
+		"build": "turbo run build",
+		"lint:biome": "biome lint .",
+		"format:biome": "biome format --write .",
+		"check:biome": "biome check --write .",
+		"prepare": "husky"
+	}
+}

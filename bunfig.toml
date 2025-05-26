@@ -1,0 +1,9 @@
+# bunfig.toml
+[workspaces]
+# "apps"フォルダの中の全フォルダと、
+# "packages"フォルダの中の全フォルダを、
+# Bunがワークスペースとして認識するようにする。
+packages = [
+  "apps/*",
+  "packages/*"
+]
