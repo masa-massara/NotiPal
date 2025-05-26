@@ -1,0 +1,52 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# IDEs and Editors
+.vscode/
+.idea/
+
+# Dependency Directories
+node_modules/
+apps/**/node_modules/
+packages/**/node_modules/
+
+# Bun-specific
+# bun.lockb should be committed, so don't ignore *.bun files broadly
+.bun/ # If bun creates a local cache/install directory here
+
+# Next.js (Frontend)
+apps/frontend/.next/
+apps/frontend/out/
+
+# Turborepo
+.turbo/
+
+# Generic Build Output - Adjust if your backend has specific output folders
+dist/
+build/
+apps/**/dist/
+apps/**/build/
+packages/**/dist/
+packages/**/build/
+
+# Log Files
+*.log
+*-debug.log*
+*-error.log*
+
+# Environment Variables - IMPORTANT: Never commit your actual .env files
+.env
+.env*.local
+# You can allow example env files if you use them:
+# !.env.example
+# !.env.sample
+
+# Husky
+.husky/_/
+
+# Other
+coverage/
+temp/
+tmp/
