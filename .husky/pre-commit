@@ -1,5 +1,5 @@
 echo "🐶 Husky: Running Biome checks before commit..."
-bun run check:biome
+bun run check
 
 if [ $? -ne 0 ]; then
   echo "❌ Biome checks failed. Please fix the issues and try committing again."
