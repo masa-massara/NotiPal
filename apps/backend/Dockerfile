@@ -7,7 +7,7 @@
 # RUN bun run build # もしビルドスクリプトがあるなら
 
 # ステージ2: 本番環境
-FROM oven/bun:latest-slim
+FROM oven/bun:1-slim
 
 WORKDIR /usr/src/app
 
