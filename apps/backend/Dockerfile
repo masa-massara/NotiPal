@@ -12,7 +12,7 @@ FROM oven/bun:1-slim
 WORKDIR /usr/src/app
 
 # 依存関係のみを先にコピーしてインストール (キャッシュ効率化のため)
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 # 本番に必要な依存関係のみインストール (もし devDependencies が多い場合)
 RUN bun install --frozen-lockfile --production
 
