@@ -11,9 +11,11 @@
 	"scripts": {
 		"dev": "turbo run dev --parallel",
 		"build": "turbo run build",
-		"lint:biome": "biome lint .",
-		"format:biome": "biome format --write .",
-		"check:biome": "biome check --write .",
+		"lint": "biome lint ./apps/frontend/src ./apps/backend/src",
+		"format": "biome format --write ./apps/frontend/src ./apps/backend/src",
+		"check": "biome check --write ./apps/frontend/src ./apps/backend/src",
 		"prepare": "husky"
-	}
+	},
+	"packageManager": "bun@1.2.14",
+	"workspaces": ["apps/*"]
 }

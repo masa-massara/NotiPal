@@ -39,6 +39,7 @@ packages/**/build/
 # Environment Variables - IMPORTANT: Never commit your actual .env files
 .env
 .env*.local
+apps/backend/.gcloud/
 # You can allow example env files if you use them:
 # !.env.example
 # !.env.sample

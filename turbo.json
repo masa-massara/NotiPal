@@ -1,0 +1,32 @@
+{
+	"$schema": "https://turborepo.org/schema.json",
+	"globalDependencies": ["bun.lock"],
+	"tasks": {
+		"build": {
+			"dependsOn": ["^build"],
+			"outputs": [
+				"apps/frontend/.next/**",
+				"!apps/frontend/.next/cache/**",
+				"apps/backend/dist/**"
+			]
+		},
+		"dev": {
+			"cache": false,
+			"persistent": true
+		},
+		"lint": {},
+		"start": {
+			"dependsOn": ["build"],
+			"cache": false
+		},
+		"lint:biome": {
+			"cache": false
+		},
+		"format:biome": {
+			"cache": false
+		},
+		"check:biome": {
+			"cache": false
+		}
+	}
+}

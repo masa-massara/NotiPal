@@ -1,0 +1,27 @@
+# NotiPal/apps/backend/docker-compose.yml
+version: '3.8'
+
+services:
+  app: # サービス名（appのままでOK）
+    build:
+      context: . # このdocker-compose.ymlがあるディレクトリがビルドコンテキスト
+      dockerfile: Dockerfile # 同じディレクトリにあるDockerfileを使用
+    container_name: notipal-backend-dev # コンテナの名前（開発用とわかるように）
+    ports:
+      # .envファイルで指定したPORT（なければ3000）をホストOSの同じ番号のポートに公開
+      - "${PORT:-8080}:${PORT:-8080}"
+    env_file:
+      - .env # このディレクトリの .env ファイルを読み込んで環境変数として設定
+    volumes:
+      - .:/usr/src/app # 現在のディレクトリ（ソースコード）をコンテナの /usr/src/app にマウント
+      - /usr/src/app/node_modules # node_modules はコンテナ内に保持（ホストと隔離）
+      # 開発用のサービスアカウントキーをコンテナ内の指定パスにマウント（読み取り専用）
+      - ./.gcloud/service-account-key-dev.json:/usr/src/app/service-account-key-dev.json:ro
+      # 本番用のサービスアカウントキーも同様にマウント（読み取り専用）
+      # 開発時は実際には使われないが、main.tsでのパス参照のため
+      - ./.gcloud/service-account-key-prod.json:/usr/src/app/service-account-key-prod.json:ro
+    # environment: # env_file を使っているので、個別の環境変数指定は基本的に不要
+      # NODE_ENV や GOOGLE_APPLICATION_CREDENTIALS_xxx は .env ファイルから読み込まれる
+    command: sh -c "bun install && bun run dev" # コンテナ起動時に実行するコマンド
+    tty: true        # ターミナル操作を可能にする
+    stdin_open: true # 標準入力を開いたままにする

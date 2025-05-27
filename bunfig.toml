@@ -4,6 +4,5 @@
 # "packages"フォルダの中の全フォルダを、
 # Bunがワークスペースとして認識するようにする。
 packages = [
-  "apps/*",
-  "packages/*"
+  "apps/*"
 ]
