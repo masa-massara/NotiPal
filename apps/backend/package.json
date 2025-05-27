@@ -2,6 +2,7 @@
 	"name": "app",
 	"scripts": {
 		"dev": "bun run --hot src/main.ts",
+		"start": "bun src/main.ts",
 		"lint": "bun biome lint ./src",
 		"format": "bun biome format --write ./src",
 		"check": "bun biome check --write ./src"

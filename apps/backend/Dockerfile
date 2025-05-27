@@ -1,12 +1,26 @@
-# Dockerfile
-FROM oven/bun:1
+# ステージ1: ビルド環境 (もしビルドが必要なら)
+# FROM oven/bun:latest as build
+# WORKDIR /usr/src/app
+# COPY package.json bun.lockb ./
+# RUN bun install --frozen-lockfile
+# COPY . .
+# RUN bun run build # もしビルドスクリプトがあるなら
 
-# アプリケーションの作業ディレクトリを設定
+# ステージ2: 本番環境
+FROM oven/bun:latest-slim
+
 WORKDIR /usr/src/app
 
-# ホストのファイルをコンテナにコピーしない (docker-compose.ymlでマウントするため)
-# ポートを公開 (docker-compose.ymlでも指定する)
+# 依存関係のみを先にコピーしてインストール (キャッシュ効率化のため)
+COPY package.json bun.lockb ./
+# 本番に必要な依存関係のみインストール (もし devDependencies が多い場合)
+RUN bun install --frozen-lockfile --production
+
+# アプリケーションのソースコードをコピー
+COPY . .
+
+# アプリケーションがリッスンするポート (Cloud Run はデフォルト8080)
 EXPOSE 8080
 
-# コンテナ起動時のデフォルトコマンド (開発時はdocker-compose.ymlで上書きすることが多い)
-CMD ["bun", "run", "src/main.ts"]
+# アプリケーションの起動コマンド (package.json の start スクリプト)
+CMD ["bun", "run", "start"]
