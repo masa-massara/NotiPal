@@ -22,7 +22,7 @@ jobs:
       - name: Google Auth
         uses: 'google-github-actions/auth@v2'
         with:
-          workload_identity_provider: 'projects/937400838385/locations/global/workloadIdentityPools/notipal-wif-pool/providers/notipal-gh-provider-final'
+          workload_identity_provider: 'projects/937400838385/locations/global/workloadIdentityPools/notipal-wif-pool/providers/notipal-gh-provider-v2'
           service_account: 'notipal-cloudbuild-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com'
 
       - name: Setup gcloud
