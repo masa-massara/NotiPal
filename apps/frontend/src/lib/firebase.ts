@@ -9,7 +9,7 @@ import { getAuth } from "firebase/auth";
 
 let firebaseConfig: FirebaseOptions; // 型を FirebaseOptions に指定
 
-const nodeEnv = process.env.NEXT_PUBLIC_NODE_ENV;
+const nodeEnv = process.env.NODE_ENV;
 
 if (nodeEnv === "production") {
 	console.log(
