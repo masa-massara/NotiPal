@@ -3,21 +3,80 @@ name: Deploy Backend to Cloud Run
 on:
   push:
     branches:
-      - main # mainブランチへのプッシュをトリガーにする
+      - main
     paths:
-      - 'apps/backend/**' # backendアプリのファイル変更があった場合のみ
-      - '.github/workflows/deploy-backend.yml' # このワークフロー自体の変更も含む
+      - 'apps/backend/**'
+      - '.github/workflows/deploy-backend.yml'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: 'read'
-      id-token: 'write' # Workload Identity Federationのために必要
+      id-token: 'write'
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      # ▼▼▼▼▼ デバッグ用ステップを追加 ▼▼▼▼▼
+      - name: Inspect GitHub OIDC Token Claims
+        run: |
+          echo "Attempting to get OIDC token..."
+          OIDC_TOKEN_RESPONSE=$(curl -s -H "Authorization: bearer ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}" "${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }}&audience=sts.googleapis.com")
+          if [ -z "$OIDC_TOKEN_RESPONSE" ]; then
+            echo "::error::Failed to get OIDC token response."
+            # ACTIONS_ID_TOKEN_REQUEST_TOKEN and ACTIONS_ID_TOKEN_REQUEST_URL might not be directly exposed as secrets.
+            # Let's try using the toolkit if the above doesn't work easily.
+            # For now, let's assume a simpler method for getting some claims if the full token is hard.
+            # A simpler approach might be to just echo standard GitHub context variables that are part of the claims.
+            echo "::warning::Full OIDC token inspection via curl might require more setup or specific action."
+            echo "Fall back to echoing standard GitHub context variables that are usually part of OIDC claims:"
+            echo "GitHub Repository: ${{ github.repository }}"
+            echo "GitHub Repository Owner: ${{ github.repository_owner }}"
+            echo "GitHub SHA: ${{ github.sha }}"
+            echo "GitHub Ref: ${{ github.ref }}"
+            echo "GitHub Actor: ${{ github.actor }}"
+            echo "GitHub Workflow: ${{ github.workflow }}"
+            echo "GitHub Event Name: ${{ github.event_name }}"
+            # The 'sub' claim is often repo:<owner>/<repo>:ref:<ref_type>/<ref_name>
+            # For a push to main, it would likely be: repo:${{ github.repository }}:ref:refs/heads/main
+            echo "Potential 'sub' claim format: repo:${{ github.repository }}:ref:${{ github.ref }}"
+          else
+            echo "OIDC Token Response (raw value part):"
+            # The response is JSON like {"value":"TOKEN_HERE"}
+            OIDC_TOKEN_VALUE=$(echo "$OIDC_TOKEN_RESPONSE" | jq -r .value)
+            if [ -z "$OIDC_TOKEN_VALUE" ] || [ "$OIDC_TOKEN_VALUE" == "null" ]; then
+              echo "::error::Could not extract token value from response: $OIDC_TOKEN_RESPONSE"
+            else
+              echo "OIDC Token Value (first 10 chars): ${OIDC_TOKEN_VALUE:0:10}..."
+              echo "Attempting to decode OIDC Token Payload:"
+              DECODED_PAYLOAD=$(echo "$OIDC_TOKEN_VALUE" | cut -d '.' -f2 | base64 -d -w 0 | jq .)
+              # Check if jq succeeded (jq exits with 0 on success)
+              if [ $? -eq 0 ]; then
+                echo "$DECODED_PAYLOAD"
+                echo "Relevant claims from decoded token:"
+                echo "Audience (aud): $(echo "$DECODED_PAYLOAD" | jq -r .aud)"
+                echo "Issuer (iss): $(echo "$DECODED_PAYLOAD" | jq -r .iss)"
+                echo "Subject (sub): $(echo "$DECODED_PAYLOAD" | jq -r .sub)"
+                echo "Repository (repository): $(echo "$DECODED_PAYLOAD" | jq -r .repository)"
+                echo "Repository Owner (repository_owner): $(echo "$DECODED_PAYLOAD" | jq -r .repository_owner)"
+                echo "Actor (actor): $(echo "$DECODED_PAYLOAD" | jq -r .actor)"
+                echo "Workflow (workflow): $(echo "$DECODED_PAYLOAD" | jq -r .workflow_ref // .workflow)" # workflow_ref is common
+                echo "Event Name (event_name): $(echo "$DECODED_PAYLOAD" | jq -r .event_name)"
+                echo "Ref (ref): $(echo "$DECODED_PAYLOAD" | jq -r .ref)"
+                echo "SHA (sha): $(echo "$DECODED_PAYLOAD" | jq -r .sha)"
+              else
+                echo "::error::jq failed to parse the decoded payload. Printing raw decoded payload (if possible):"
+                echo "$OIDC_TOKEN_VALUE" | cut -d '.' -f2 | base64 -d -w 0
+              fi
+            fi
+          fi
+        env:
+          # These are typically available directly for OIDC
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ secrets.ACTIONS_ID_TOKEN_REQUEST_URL }}
+      # ▲▲▲▲▲ デバッグ用ステップはここまで ▲▲▲▲▲
 
       - name: Google Auth
         uses: 'google-github-actions/auth@v2'
