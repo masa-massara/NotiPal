@@ -1,39 +1,37 @@
 steps:
-  # 1. Dockerイメージをビルドする
-  - name: 'gcr.io/cloud-builders/docker'
-    args:
-      [
-        'build',
-        '-t',
-        'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-frontend-repo/notipal-frontend:${COMMIT_SHA}',
-              '--build-arg'
-        'NEXT_PUBLIC_FIREBASE_API_KEY_PROD=${_NEXT_PUBLIC_FIREBASE_API_KEY_PROD}'
-        '--build-arg'
-        'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD=${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD}'
-        '--build-arg'
-        'NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD=${_NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD}'
-        '--build-arg'
-        'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD=${_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD}'
-        '--build-arg'
-        'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD=${_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD}'
-        '--build-arg'
-        'NEXT_PUBLIC_FIREBASE_APP_ID_PROD=${_NEXT_PUBLIC_FIREBASE_APP_ID_PROD}'
-        '--build-arg'
-        'NEXT_PUBLIC_API_BASE_URL_PROD=${_NEXT_PUBLIC_API_BASE_URL_PROD}' # GitHub Actionsから渡すように変更したやつ
-        '--build-arg'
-        'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD=${_NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD}' # 必要なら
-        '.', # Dockerfileのビルドコンテキストはリポジトリのルートを指定
-        '-f',
-        'apps/frontend/Dockerfile', # apps/frontend ディレクトリにある Dockerfile を指定
-      ]
-    # dir はここでは不要。ビルドコンテキストがルートで、Dockerfileのパスを -f で指定してるからな。
+    # 1. Dockerイメージをビルドする
+    - name: "gcr.io/cloud-builders/docker"
+      args:
+          - "build"
+          - "-t"
+          - "asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-frontend-repo/notipal-frontend:${COMMIT_SHA}"
+          - "--build-arg"
+          - "NEXT_PUBLIC_FIREBASE_API_KEY_PROD=${_NEXT_PUBLIC_FIREBASE_API_KEY_PROD}"
+          - "--build-arg"
+          - "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD=${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD}"
+          - "--build-arg"
+          - "NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD=${_NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD}"
+          - "--build-arg"
+          - "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD=${_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD}"
+          - "--build-arg"
+          - "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD=${_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD}"
+          - "--build-arg"
+          - "NEXT_PUBLIC_FIREBASE_APP_ID_PROD=${_NEXT_PUBLIC_FIREBASE_APP_ID_PROD}"
+          - "--build-arg"
+          - "NEXT_PUBLIC_API_BASE_URL_PROD=${_NEXT_PUBLIC_API_BASE_URL_PROD}" # GitHub Actionsから渡すように変更したやつ
+          - "--build-arg"
+          - "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD=${_NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD}" # 必要なら
+          - "." # Dockerfileのビルドコンテキストはリポジトリのルートを指定
+          - "-f"
+          - "apps/frontend/Dockerfile" # apps/frontend ディレクトリにある Dockerfile を指定
+      # dir はここでは不要。ビルドコンテキストがルートで、Dockerfileのパスを -f で指定してるからな。
 
 # 2. ビルドしたイメージをArtifact Registryにプッシュする
 images:
-  - 'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-frontend-repo/notipal-frontend:${COMMIT_SHA}'
+    - "asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-frontend-repo/notipal-frontend:${COMMIT_SHA}"
 
 # オプション: タイムアウト設定
-timeout: '1200s' # 20分（Next.jsのビルドは時間がかかることがあるから、長めにしとくと安心や）
+timeout: "1200s" # 20分（Next.jsのビルドは時間がかかることがあるから、長めにしとくと安心や）
 
 options:
-  logging: CLOUD_LOGGING_ONLY
+    logging: CLOUD_LOGGING_ONLY
