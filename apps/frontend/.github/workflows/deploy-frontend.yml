@@ -1,0 +1,64 @@
+name: Deploy Frontend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main # mainブランチへのプッシュをトリガーにする
+    paths:
+      - 'apps/frontend/**' # frontendアプリのファイル変更があった場合のみ
+      - '.github/workflows/deploy-frontend.yml' # このワークフロー自体の変更も含む
+      - 'turbo.json' # モノレポのビルド設定変更も検知
+      - 'package.json' # ルートの依存関係変更も検知
+      - 'bun.lockb'    # ルートのロックファイル変更も検知
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Workload Identity Federationのために必要
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth # 後で他のステップから参照できるようにIDを振っとく
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/937400838385/locations/global/workloadIdentityPools/notipal-wif-pool/providers/notipal-gh-provider-v2' # これはバックエンドと同じものを使う
+          service_account: 'notipal-cloudbuild-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com' # これもバックエンドと同じサービスアカウント
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Submit build to Cloud Build for Frontend
+        run: |
+          gcloud builds submit . \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --config=apps/frontend/cloudbuild-frontend.yaml \
+            --substitutions=COMMIT_SHA=${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy notipal-frontend-service \
+            --image asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/notipal-frontend-repo/notipal-frontend:${{ github.sha }} \
+            --region asia-northeast1 \
+            --platform managed \
+            --allow-unauthenticated \
+            --port 3000 \
+            --set-env-vars NEXT_PUBLIC_API_BASE_URL_PROD="https://notipal-backend-service-937400838385.asia-northeast1.run.app/api/v1" \
+            --set-env-vars NEXT_PUBLIC_FIREBASE_API_KEY_PROD="${{ secrets.FRONTEND_FIREBASE_API_KEY_PROD }}" \
+            --set-env-vars NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD="${{ secrets.FRONTEND_FIREBASE_AUTH_DOMAIN_PROD }}" \
+            --set-env-vars NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD="${{ secrets.FRONTEND_FIREBASE_PROJECT_ID_PROD }}" \
+            --set-env-vars NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD="${{ secrets.FRONTEND_FIREBASE_STORAGE_BUCKET_PROD }}" \
+            --set-env-vars NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD="${{ secrets.FRONTEND_FIREBASE_MESSAGING_SENDER_ID_PROD }}" \
+            --set-env-vars NEXT_PUBLIC_FIREBASE_APP_ID_PROD="${{ secrets.FRONTEND_FIREBASE_APP_ID_PROD }}" \
+            # NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD はオプショナルやから、必要なら追加してな
+            --quiet
+
+      - name: Deployment Notification
+        if: success()
+        run: echo "✅ Frontend deployed successfully to Cloud Run!"
