@@ -33,7 +33,7 @@ steps:
         '--quiet',
         '--service-account', # ランタイムサービスアカウント
         'notipal-cloudrun-sa@${PROJECT_ID}.iam.gserviceaccount.com',
-        '--set-secrets=ENCRYPTION_KEY=projects/${PROJECT_ID}/secrets/ENCRYPTION_KEY/versions/latest', # Secret ManagerからENCRYPTION_KEYを環境変数として設定
+        '--set-secrets=ENCRYPTION_KEY=ENCRYPTION_KEY:latest', # Secret ManagerからENCRYPTION_KEYを環境変数として設定
       ]
 
 # イメージを保存する場所 (ビルドステップと一致させる)
