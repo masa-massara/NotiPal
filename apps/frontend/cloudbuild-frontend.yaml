@@ -5,7 +5,15 @@ steps:
       [
         'build',
         '-t',
-        'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-frontend-repo/notipal-frontend:${COMMIT_SHA}', # フロントエンド用のリポジトリ名（例: notipal-frontend-repo）
+        'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-frontend-repo/notipal-frontend:${COMMIT_SHA}',
+        '--build-arg', 'NEXT_PUBLIC_FIREBASE_API_KEY_PROD=${_NEXT_PUBLIC_FIREBASE_API_KEY_PROD}',
+        '--build-arg', 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD=${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD}',
+        '--build-arg', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD=${_NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD}',
+        '--build-arg', 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD=${_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD}',
+        '--build-arg', 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD=${_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD}',
+        '--build-arg', 'NEXT_PUBLIC_FIREBASE_APP_ID_PROD=${_NEXT_PUBLIC_FIREBASE_APP_ID_PROD}',
+        '--build-arg', 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD=${_NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD}', # 必要なら
+        '--build-arg', 'NEXT_PUBLIC_API_BASE_URL_PROD=${_NEXT_PUBLIC_API_BASE_URL_PROD}',
         '.', # Dockerfileのビルドコンテキストはリポジトリのルートを指定
         '-f',
         'apps/frontend/Dockerfile', # apps/frontend ディレクトリにある Dockerfile を指定
