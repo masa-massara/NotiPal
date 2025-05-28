@@ -6,7 +6,7 @@ steps:
         'build',
         '-t',
         'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-frontend-repo/notipal-frontend:${COMMIT_SHA}',
-              - '--build-arg'
+              '--build-arg'
         'NEXT_PUBLIC_FIREBASE_API_KEY_PROD=${_NEXT_PUBLIC_FIREBASE_API_KEY_PROD}'
         '--build-arg'
         'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD=${_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD}'
