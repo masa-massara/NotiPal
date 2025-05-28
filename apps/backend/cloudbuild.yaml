@@ -10,7 +10,6 @@ steps:
         '-f',
         'Dockerfile', # Dockerfileのパス (このステップの作業ディレクトリからの相対パス)
       ]
-    dir: 'apps/backend' # このステップの作業ディレクトリを apps/backend に設定
 
   # 2. ビルドしたイメージをArtifact Registryにプッシュする
   - name: 'gcr.io/cloud-builders/docker'
