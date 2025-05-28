@@ -47,10 +47,10 @@ jobs:
             --image asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/notipal-frontend-repo/notipal-frontend:${{ github.sha }} \
             --region asia-northeast1 \
             --platform managed \
-            --execution-environment=gen2
+            
             --allow-unauthenticated \
             --port 3000 \
-            --memory=1536Mi \
+            --memory=2Gi \
             --set-env-vars "NEXT_PUBLIC_API_BASE_URL_PROD='${{ secrets.FRONTEND_API_BASE_URL_PROD }}',\
             NEXT_PUBLIC_FIREBASE_API_KEY_PROD='${{ secrets.FRONTEND_FIREBASE_API_KEY_PROD }}',\
             NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD='${{ secrets.FRONTEND_FIREBASE_AUTH_DOMAIN_PROD }}',\
