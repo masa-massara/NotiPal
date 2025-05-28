@@ -6,7 +6,7 @@ on:
       - main # mainブランチへのプッシュをトリガーにする
     paths:
       - 'apps/backend/**' # backendアプリのファイル変更があった場合のみ
-      - '.github/workflows/deploy-backend.yml' # このワークフロー自体の変更も含む
+      - '.github/workflows/deploy-backend.yaml' # このワークフロー自体の変更も含む
 
 jobs:
   deploy:
