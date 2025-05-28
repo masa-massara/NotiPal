@@ -47,6 +47,7 @@ jobs:
             --image asia-northeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/notipal-frontend-repo/notipal-frontend:${{ github.sha }} \
             --region asia-northeast1 \
             --platform managed \
+            --execution-environment=gen2
             --allow-unauthenticated \
             --port 3000 \
             --memory=1Gi \
