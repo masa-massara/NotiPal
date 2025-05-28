@@ -3,13 +3,13 @@ name: Deploy Frontend to Cloud Run
 on:
   push:
     branches:
-      - main # mainブランチへのプッシュをトリガーにする
+      - main
     paths:
       - 'apps/frontend/**' # frontendアプリのファイル変更があった場合のみ
-      - '.github/workflows/deploy-frontend.yml' # このワークフロー自体の変更も含む
+      - '.github/workflows/deploy-frontend.yaml' # このワークフロー自体の変更も含む
       - 'turbo.json' # モノレポのビルド設定変更も検知
       - 'package.json' # ルートの依存関係変更も検知
-      - 'bun.lockb'    # ルートのロックファイル変更も検知
+      - 'bun.lock'    # ルートのロックファイル変更も検知
 
 jobs:
   deploy:
