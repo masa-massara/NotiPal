@@ -3,10 +3,10 @@ name: Deploy Frontend to Cloud Run
 on:
   push:
     branches:
-      - main
+      - main # mainブランチへのプッシュをトリガーにする
     paths:
       - 'apps/frontend/**' # frontendアプリのファイル変更があった場合のみ
-      - '.github/workflows/deploy-frontend.yaml' # このワークフロー自体の変更も含む
+      - '.github/workflows/deploy-frontend.yml' # このワークフロー自体の変更も含む (拡張子を .yml に合わせた)
       - 'turbo.json' # モノレポのビルド設定変更も検知
       - 'package.json' # ルートの依存関係変更も検知
       - 'bun.lock'    # ルートのロックファイル変更も検知
@@ -39,15 +39,15 @@ jobs:
           gcloud builds submit . \
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --config=apps/frontend/cloudbuild-frontend.yaml \
-            --substitutions=COMMIT_SHA=${{ github.sha }} \
-            _NEXT_PUBLIC_FIREBASE_API_KEY_PROD="${{ secrets.FRONTEND_FIREBASE_API_KEY_PROD }}" \
-            _NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD="${{ secrets.FRONTEND_FIREBASE_AUTH_DOMAIN_PROD }}" \
-            _NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD="${{ secrets.FRONTEND_FIREBASE_PROJECT_ID_PROD }}" \
-            _NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD="${{ secrets.FRONTEND_FIREBASE_STORAGE_BUCKET_PROD }}" \
-            _NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD="${{ secrets.FRONTEND_FIREBASE_MESSAGING_SENDER_ID_PROD }}" \
-            _NEXT_PUBLIC_FIREBASE_APP_ID_PROD="${{ secrets.FRONTEND_FIREBASE_APP_ID_PROD }}" \
-            _NEXT_PUBLIC_API_BASE_URL_PROD="https://notifier-app-953644780816.asia-northeast1.run.app/api/v1" \
-            _NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD="${{ secrets.FRONTEND_FIREBASE_MEASUREMENT_ID_PROD }}"
+            --substitutions="COMMIT_SHA=${{ github.sha }},\
+_NEXT_PUBLIC_FIREBASE_API_KEY_PROD='${{ secrets.FRONTEND_FIREBASE_API_KEY_PROD }}',\
+_NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD='${{ secrets.FRONTEND_FIREBASE_AUTH_DOMAIN_PROD }}',\
+_NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD='${{ secrets.FRONTEND_FIREBASE_PROJECT_ID_PROD }}',\
+_NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD='${{ secrets.FRONTEND_FIREBASE_STORAGE_BUCKET_PROD }}',\
+_NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD='${{ secrets.FRONTEND_FIREBASE_MESSAGING_SENDER_ID_PROD }}',\
+_NEXT_PUBLIC_FIREBASE_APP_ID_PROD='${{ secrets.FRONTEND_FIREBASE_APP_ID_PROD }}',\
+_NEXT_PUBLIC_API_BASE_URL_PROD='https://notifier-app-953644780816.asia-northeast1.run.app/api/v1',\
+_NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD='${{ secrets.FRONTEND_FIREBASE_MEASUREMENT_ID_PROD }}'"
 
       - name: Deploy to Cloud Run
         run: |
@@ -64,7 +64,7 @@ jobs:
             --set-env-vars NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD="${{ secrets.FRONTEND_FIREBASE_STORAGE_BUCKET_PROD }}" \
             --set-env-vars NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD="${{ secrets.FRONTEND_FIREBASE_MESSAGING_SENDER_ID_PROD }}" \
             --set-env-vars NEXT_PUBLIC_FIREBASE_APP_ID_PROD="${{ secrets.FRONTEND_FIREBASE_APP_ID_PROD }}" \
-            # NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD はオプショナルやから、必要なら追加してな
+            # NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD はオプショナルやから、必要なら前の行の末尾のカンマとこの行のコメントを調整してな
             --quiet
 
       - name: Deployment Notification
