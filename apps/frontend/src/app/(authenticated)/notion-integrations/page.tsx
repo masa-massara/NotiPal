@@ -49,14 +49,16 @@ const TableSkeleton = () => (
 function NotionIntegrationsPage() {
 	const { toast } = useToast();
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-	const [selectedIntegration, setSelectedIntegration] =
-		React.useState<NotionIntegration | null>(null);
+	const [selectedIntegration, setSelectedIntegration] = React.useState<NotionIntegration | null>(
+		null
+	);
 
 	const [queryResult, queryDispatch] = useAtom(userNotionIntegrationsQueryAtom);
 
 	// ★★★ atomWithMutation の使い方を修正 ★★★
-	const [deleteMutationResult, _setDeleteAtomConfig] = useAtom( // _setDeleteAtomConfig は通常使わない
-		deleteUserNotionIntegrationMutationAtom,
+	const [deleteMutationResult, _setDeleteAtomConfig] = useAtom(
+		// _setDeleteAtomConfig は通常使わない
+		deleteUserNotionIntegrationMutationAtom
 	);
 	// deleteMutationResult から必要な状態と関数を取り出す
 	const {
@@ -107,7 +109,8 @@ function NotionIntegrationsPage() {
 	};
 
 	const confirmDelete = () => {
-		if (selectedIntegration && actualDeleteIntegration) { // ★★★ actualDeleteIntegration を確認 ★★★
+		if (selectedIntegration && actualDeleteIntegration) {
+			// ★★★ actualDeleteIntegration を確認 ★★★
 			// ★★★ ミューテーション実行関数の呼び出し方を修正 ★★★
 			actualDeleteIntegration(selectedIntegration.id); // 引数は variables オブジェクトではなく、直接IDを渡す
 		}
@@ -119,9 +122,7 @@ function NotionIntegrationsPage() {
 		} else {
 			// queryDispatch({ type: "refetch" }); // queryDispatch が refetch アクションをサポートしているか確認が必要
 			// 通常は useQuery の refetch 関数が使えるはず
-			console.warn(
-				"refetch function is not available directly, attempting dispatch.",
-			);
+			console.warn("refetch function is not available directly, attempting dispatch.");
 			// Jotai-TanStack-Query v0.8.0 以降、atom の dispatch 関数で "refetch" は直接サポートされない可能性あり
 			// queryClient.invalidateQueries を使うのが一般的
 		}
@@ -146,7 +147,8 @@ function NotionIntegrationsPage() {
 		);
 	}
 
-	if (isQueryError) { // ★★★ isError を isQueryError に変更 ★★★
+	if (isQueryError) {
+		// ★★★ isError を isQueryError に変更 ★★★
 		return (
 			<>
 				<PageHeader
@@ -162,7 +164,8 @@ function NotionIntegrationsPage() {
 				/>
 				<div className="py-10 text-center">
 					<p className="mb-4 text-red-500">
-						エラーが発生しました: {queryErrorData?.message || "不明なエラー"} {/* ★★★ error を queryErrorData に変更 ★★★ */}
+						エラーが発生しました: {queryErrorData?.message || "不明なエラー"}{" "}
+						{/* ★★★ error を queryErrorData に変更 ★★★ */}
 					</p>
 					<Button onClick={handleRetry}>
 						<RefreshCw className="mr-2 w-4 h-4" />
@@ -230,7 +233,7 @@ function NotionIntegrationsPage() {
 			) : (
 				<div className="py-10 text-center">
 					{/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
-<svg
+					<svg
 						xmlns="http://www.w3.org/2000/svg"
 						className="mx-auto w-12 h-12 text-gray-400"
 						fill="none"
@@ -279,7 +282,8 @@ function NotionIntegrationsPage() {
 								disabled={isDeletePending} // ★★★ 状態の参照を修正 ★★★
 								className="bg-red-600 hover:bg-red-700"
 							>
-								{isDeletePending ? "削除中..." : "削除する"} {/* ★★★ 状態の参照を修正 ★★★ */}
+								{isDeletePending ? "削除中..." : "削除する"}{" "}
+								{/* ★★★ 状態の参照を修正 ★★★ */}
 							</AlertDialogAction>
 						</AlertDialogFooter>
 					</AlertDialogContent>
