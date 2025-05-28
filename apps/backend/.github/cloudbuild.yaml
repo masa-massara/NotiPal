@@ -1,0 +1,43 @@
+name: Deploy Backend to Cloud Run
+
+on:
+  push:
+    branches:
+      - main # mainブランチへのプッシュをトリガーにする
+    paths:
+      - 'apps/backend/**' # backendアプリのファイル変更があった場合のみ
+      - '.github/workflows/deploy-backend.yml' # このワークフロー自体の変更も含む
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write' # Workload Identity Federationのために必要
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          workload_identity_provider: 'projects/937400838385/locations/global/workloadIdentityPools/notipal-wif-pool/providers/notipal-gh-provider-final' # 正しいプールIDとプロバイダIDに修正済みか確認！
+          service_account: 'notipal-cloudbuild-sa@${{ secrets.GCP_PROJECT_ID }}.iam.gserviceaccount.com'
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Submit build to Cloud Build
+        run: |
+          gcloud builds submit apps/backend \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --config=apps/backend/cloudbuild.yaml \
+            --substitutions=COMMIT_SHA=${{ github.sha }}
+        # working-directory は gcloud builds submit の第一引数でコンテキストを指定するので不要
+
+      - name: Deployment Notification
+        if: success()
+        run: echo "✅ Backend deployed successfully to Cloud Run!"
