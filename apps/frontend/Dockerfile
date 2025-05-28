@@ -3,8 +3,8 @@ FROM oven/bun:1 as builder
 WORKDIR /usr/src/app
 
 # --- モノレポ対応 ---
-# ルートの package.json, bun.lockb, turbo.json などをコピー
-COPY package.json bun.lockb turbo.json ./
+# ルートの package.json, bun.lock, turbo.json などをコピー
+COPY package.json bun.lock turbo.json ./
 # frontend ワークスペースの package.json をコピー
 COPY apps/frontend/package.json ./apps/frontend/
 # backend ワークスペースの package.json もコピー (turbo が依存関係を解決するために必要になることがある)
@@ -14,7 +14,7 @@ COPY bunfig.toml ./
 
 
 # ワークスペース全体の依存関係をインストール
-# --frozen-lockfile は bun.lockb に基づいて厳密にインストールするオプションや
+# --frozen-lockfile は bun.lock に基づいて厳密にインストールするオプションや
 RUN bun install --frozen-lockfile
 
 # アプリケーションのソースコード全体をコピー
