@@ -1,12 +1,5 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-	output: "standalone",
-	outputFileTracingIncludes: {
-		"node_modules/@opentelemetry/api": [
-			"./node_modules/@opentelemetry/api/**/*",
-		],
-	},
-};
+const nextConfig: NextConfig = {};
 
 export default nextConfig;
