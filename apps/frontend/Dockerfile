@@ -38,6 +38,7 @@ COPY bunfig.toml ./
 # ワークスペース全体の依存関係をインストール
 # --frozen-lockfile は bun.lock に基づいて厳密にインストールするオプションや
 RUN bun install --frozen-lockfile
+RUN bun install -g turbo
 
 # アプリケーションのソースコード全体をコピー
 # この時点では /usr/src/app が作業ディレクトリやから、リポジトリルートからの相対パスで指定する
@@ -47,7 +48,7 @@ COPY .github ./.github
 
 # Next.js アプリケーションをビルド (turbo を使って frontend のみを対象に)
 # turbo.json の "build" タスクが "apps/frontend/.next/**" などを出力するように設定されてるはずや
-RUN bunx turbo run build
+RUN turbo run build
 
 # ステージ2: プロダクションイメージの作成
 FROM oven/bun:1 as production
