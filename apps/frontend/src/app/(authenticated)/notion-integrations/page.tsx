@@ -49,16 +49,15 @@ const TableSkeleton = () => (
 function NotionIntegrationsPage() {
 	const { toast } = useToast();
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-	const [selectedIntegration, setSelectedIntegration] = React.useState<NotionIntegration | null>(
-		null
-	);
+	const [selectedIntegration, setSelectedIntegration] =
+		React.useState<NotionIntegration | null>(null);
 
 	const [queryResult, queryDispatch] = useAtom(userNotionIntegrationsQueryAtom);
 
 	// ★★★ atomWithMutation の使い方を修正 ★★★
 	const [deleteMutationResult, _setDeleteAtomConfig] = useAtom(
 		// _setDeleteAtomConfig は通常使わない
-		deleteUserNotionIntegrationMutationAtom
+		deleteUserNotionIntegrationMutationAtom,
 	);
 	// deleteMutationResult から必要な状態と関数を取り出す
 	const {
@@ -94,7 +93,8 @@ function NotionIntegrationsPage() {
 			toast({
 				title: "エラー",
 				description:
-					(deleteErrorData as Error).message || "Notion連携の削除に失敗しました。",
+					(deleteErrorData as Error).message ||
+					"Notion連携の削除に失敗しました。",
 				variant: "destructive",
 			});
 			setShowDeleteDialog(false);
@@ -122,7 +122,9 @@ function NotionIntegrationsPage() {
 		} else {
 			// queryDispatch({ type: "refetch" }); // queryDispatch が refetch アクションをサポートしているか確認が必要
 			// 通常は useQuery の refetch 関数が使えるはず
-			console.warn("refetch function is not available directly, attempting dispatch.");
+			console.warn(
+				"refetch function is not available directly, attempting dispatch.",
+			);
 			// Jotai-TanStack-Query v0.8.0 以降、atom の dispatch 関数で "refetch" は直接サポートされない可能性あり
 			// queryClient.invalidateQueries を使うのが一般的
 		}

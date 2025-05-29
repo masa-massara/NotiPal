@@ -47,7 +47,7 @@ COPY .github ./.github
 
 # Next.js アプリケーションをビルド (turbo を使って frontend のみを対象に)
 # turbo.json の "build" タスクが "apps/frontend/.next/**" などを出力するように設定されてるはずや
-RUN bun run build --filter=frontend
+RUN bun run build
 
 # ステージ2: プロダクションイメージの作成
 FROM oven/bun:1 as production
