@@ -67,6 +67,14 @@ COPY --from=builder /usr/src/app/apps/frontend/public ./apps/frontend/public
 
 ENV NODE_ENV=production
 
+RUN mkdir -p ./apps/frontend/node_modules/next/dist/compiled/
+COPY --from=builder /usr/src/app/node_modules/next/dist/compiled/@opentelemetry/api ./apps/frontend/node_modules/next/dist/compiled/@opentelemetry/api
+
+# 念のため、tracer.js が直接参照しそうな他のパスにもコピーしてみる
+# (これは冗長かもしれんが、問題切り分けのため)
+RUN mkdir -p ./apps/frontend/next/dist/compiled/
+COPY --from=builder /usr/src/app/node_modules/next/dist/compiled/@opentelemetry/api ./apps/frontend/next/dist/compiled/@opentelemetry/api
+
 # 起動ポート (Next.js のデフォルトは3000やけど、環境変数 PORT で変更可能)
 EXPOSE 3000
 
