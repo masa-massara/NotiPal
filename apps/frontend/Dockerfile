@@ -75,6 +75,20 @@ COPY --from=builder /usr/src/app/node_modules/next/dist/compiled/@opentelemetry/
 RUN mkdir -p ./apps/frontend/next/dist/compiled/
 COPY --from=builder /usr/src/app/node_modules/next/dist/compiled/@opentelemetry/api ./apps/frontend/next/dist/compiled/@opentelemetry/api
 
+COPY --from=builder /usr/src/app/apps/frontend/.next/standalone/apps/frontend/ ./
+
+# .next/static と public フォルダも、スタンドアロン出力された server.js から
+
+# 参照される相対パスを考慮してコピーする。
+
+# 通常、server.js と同じ階層に .next/static や public があることを期待する。
+
+COPY --from=builder /usr/src/app/apps/frontend/.next/standalone/apps/frontend/.next/static ./.next/static
+COPY --from=builder /usr/src/app/apps/frontend/.next/standalone/apps/frontend/public ./public
+
+# \--- 修正箇所ここまで ---
+
+
 # 起動ポート (Next.js のデフォルトは3000やけど、環境変数 PORT で変更可能)
 EXPOSE 3000
 
