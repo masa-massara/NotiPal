@@ -53,7 +53,7 @@ RUN bun run build
 FROM oven/bun:1 as production
 WORKDIR /usr/src/app
 
-ENV NODE_ENV=production
+
 # NEXT_PUBLIC_ で始まる本番用の環境変数は、Cloud Run サービスで設定することを推奨するで
 
 # ビルドステージから、ビルド済みの Next.js アプリ (standalone 形式) をコピー
@@ -63,6 +63,8 @@ COPY --from=builder /usr/src/app/apps/frontend/.next/standalone ./apps/frontend/
 COPY --from=builder /usr/src/app/apps/frontend/.next/static ./apps/frontend/.next/static
 # public フォルダも必要ならコピー
 COPY --from=builder /usr/src/app/apps/frontend/public ./apps/frontend/public
+
+ENV NODE_ENV=production
 
 # 起動ポート (Next.js のデフォルトは3000やけど、環境変数 PORT で変更可能)
 EXPOSE 3000
