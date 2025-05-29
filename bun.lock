@@ -2,6 +2,9 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
+      "dependencies": {
+        "@opentelemetry/api": "^1.9.0",
+      },
       "devDependencies": {
         "@biomejs/biome": "^1.9.4",
         "husky": "^9.1.7",
