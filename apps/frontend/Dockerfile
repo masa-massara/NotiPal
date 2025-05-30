@@ -2,10 +2,8 @@
 FROM oven/bun:1 as builder
 WORKDIR /usr/src/app
 
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0" 
-
+# アプリケーションのビルド時に使用する環境変数
+# これらの値は docker build コマンドの --build-arg で渡される
 ARG NEXT_PUBLIC_FIREBASE_API_KEY_PROD
 ARG NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD
 ARG NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD
@@ -15,6 +13,7 @@ ARG NEXT_PUBLIC_FIREBASE_APP_ID_PROD
 ARG NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD
 ARG NEXT_PUBLIC_API_BASE_URL_PROD
 
+# ビルド時にARGからENVへ設定
 ENV NEXT_PUBLIC_FIREBASE_API_KEY_PROD=$NEXT_PUBLIC_FIREBASE_API_KEY_PROD
 ENV NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD=$NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_PROD
 ENV NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD=$NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD
@@ -24,75 +23,56 @@ ENV NEXT_PUBLIC_FIREBASE_APP_ID_PROD=$NEXT_PUBLIC_FIREBASE_APP_ID_PROD
 ENV NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD=$NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD
 ENV NEXT_PUBLIC_API_BASE_URL_PROD=$NEXT_PUBLIC_API_BASE_URL_PROD
 
-# --- モノレポ対応 ---
-# ルートの package.json, bun.lock, turbo.json などをコピー
-COPY package.json bun.lock turbo.json ./
-# frontend ワークスペースの package.json をコピー
-COPY apps/frontend/package.json ./apps/frontend/
-# backend ワークスペースの package.json もコピー (turbo が依存関係を解決するために必要になることがある)
-COPY apps/backend/package.json ./apps/backend/
-# bunfig.toml もあればコピー (ルートの bunfig.toml を参照)
-COPY bunfig.toml ./
+# ビルドステージでは開発依存も必要なので、NODE_ENV はここでは設定しないか、
+# ビルド直前に設定する方が安全な場合があります。
+# ただし、Next.js のビルドは 'production' で行われるのが一般的なので、
+# bun install 後、bun run build の前に設定するのが良いかもしれません。
+# ENV NODE_ENV=production # ここか、RUN bun run build の直前
 
+# --- モノレポ対応 ---
+# 依存関係解決に必要なファイルを先にコピー
+COPY package.json bun.lock turbo.json ./
+COPY apps/frontend/package.json ./apps/frontend/
+COPY apps/backend/package.json ./apps/backend/
+# COPY bunfig.toml ./ # もしルートにあれば
 
 # ワークスペース全体の依存関係をインストール
-# --frozen-lockfile は bun.lock に基づいて厳密にインストールするオプションや
+# これで node_modules/.bin/turbo も作成されるはず
 RUN bun install --frozen-lockfile
-RUN bun install -g turbo
 
 # アプリケーションのソースコード全体をコピー
-# この時点では /usr/src/app が作業ディレクトリやから、リポジトリルートからの相対パスで指定する
-COPY apps ./apps
-COPY .github ./.github
-
+# ( .dockerignore で不要なファイルを除外することを推奨 )
+COPY . .
+# COPY apps ./apps # こちらのほうがより限定的で良い場合も
+# COPY tsconfig.json ./ # ルートのtsconfigも必要なら
 
 # Next.js アプリケーションをビルド (turbo を使って frontend のみを対象に)
-# turbo.json の "build" タスクが "apps/frontend/.next/**" などを出力するように設定されてるはずや
-RUN turbo run build
+ENV NODE_ENV=production
+RUN bun run build
+# 確認用: RUN ls -R /usr/src/app/apps/frontend/.next/standalone
 
 # ステージ2: プロダクションイメージの作成
 FROM oven/bun:1 as production
-WORKDIR /usr/src/app
-
-
-# NEXT_PUBLIC_ で始まる本番用の環境変数は、Cloud Run サービスで設定することを推奨するで
-
-# ビルドステージから、ビルド済みの Next.js アプリ (standalone 形式) をコピー
-# Next.js の `output: 'standalone'` 設定により、.next/standalone に実行に必要なファイルがまとまるんや
-COPY --from=builder /usr/src/app/apps/frontend/.next/standalone ./apps/frontend/
-# 静的ファイルも忘れずにコピー
-COPY --from=builder /usr/src/app/apps/frontend/.next/static ./apps/frontend/.next/static
-# public フォルダも必要ならコピー
-COPY --from=builder /usr/src/app/apps/frontend/public ./apps/frontend/public
+WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+# NEXT_PUBLIC_* の環境変数は、Cloud Runのサービス実行時に設定するため、ここでは不要
 
-RUN mkdir -p ./apps/frontend/node_modules/next/dist/compiled/
-COPY --from=builder /usr/src/app/node_modules/next/dist/compiled/@opentelemetry/api ./apps/frontend/node_modules/next/dist/compiled/@opentelemetry/api
+# builderステージの standalone 出力全体を /app にコピー
+# これにより、server.js、必要なnode_modules、.next、publicなどが /app 直下に配置される
+COPY --from=builder /usr/src/app/apps/frontend/.next/standalone ./
 
-# 念のため、tracer.js が直接参照しそうな他のパスにもコピーしてみる
-# (これは冗長かもしれんが、問題切り分けのため)
-RUN mkdir -p ./apps/frontend/next/dist/compiled/
-COPY --from=builder /usr/src/app/node_modules/next/dist/compiled/@opentelemetry/api ./apps/frontend/next/dist/compiled/@opentelemetry/api
-
-COPY --from=builder /usr/src/app/apps/frontend/.next/standalone/apps/frontend/ ./
-
-# .next/static と public フォルダも、スタンドアロン出力された server.js から
-
-# 参照される相対パスを考慮してコピーする。
-
-# 通常、server.js と同じ階層に .next/static や public があることを期待する。
-
-COPY --from=builder /usr/src/app/apps/frontend/.next/standalone/apps/frontend/.next/static ./.next/static
-COPY --from=builder /usr/src/app/apps/frontend/.next/standalone/apps/frontend/public ./public
-
-# \--- 修正箇所ここまで ---
+# 念のため、publicと.next/staticがstandaloneに含まれていない場合に備える
+# (通常、Next.js v12以降のstandalone出力ではこれらはstandalone内に適切に配置されるはず)
+# もし、ls -R の結果、これらが /usr/src/app/apps/frontend/ (.next/standaloneの外) にある場合は、
+# 以下のようなコピーが必要になる。
+# COPY --from=builder /usr/src/app/apps/frontend/public ./public
+# COPY --from=builder /usr/src/app/apps/frontend/.next/static ./.next/static
 
 
-# 起動ポート (Next.js のデフォルトは3000やけど、環境変数 PORT で変更可能)
 EXPOSE 3000
 
-# アプリケーションを起動
-# .next/standalone ディレクトリの中にある server.js を bun で実行する
-# 作業ディレクトリは /usr/src/app のままなので、パスの指定に注意や
-CMD ["bun", "apps/frontend/server.js"]
+# server.js はコピーされた /app の直下にあると想定して実行
+CMD ["bun", "server.js"]
