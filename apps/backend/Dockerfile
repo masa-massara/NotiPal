@@ -20,7 +20,7 @@ COPY apps/frontend/package.json ./apps/frontend/package.json
 
 # 3. 依存関係をインストール
 #    ワークスペース内の全ての package.json とルートの bun.lockb が揃った状態で実行
-RUN bun install --frozen-lockfile --production
+RUN bun install --frozen-lockfile --production --ignore-scripts
 
 # 4. アプリケーションのコード全体をコピー
 #    依存関係インストール後にコード全体をコピーするのが一般的や。
