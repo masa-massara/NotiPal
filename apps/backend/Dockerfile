@@ -30,7 +30,9 @@ COPY bun.lock ./original-bun.lock
 
 # --frozen-lockfile を一時的に外して、bunにbun.lockを更新させる
 # これで、bun.lock がどう変わるかを確認する
-RUN bun install --production
+RUN echo "Attempting 'CI=false bun install --production'..." && \
+    CI=false bun install --production && \
+    echo "Finished 'CI=false bun install --production'."
 
 # 更新されたbun.lockと元のbun.lockの差分を表示する
 # 差分があってもエラーで止まらないように || true をつけてる
