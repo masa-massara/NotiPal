@@ -2,7 +2,7 @@ FROM oven/bun:1-slim AS base
 WORKDIR /usr/src/app
 
 # 1. ルートの package.json と bun.lockb をコピー
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 
 # 2. ワークスペース内の各アプリケーションの package.json を、
 #    それぞれのディレクトリ構造を維持してコピーする。
@@ -14,7 +14,7 @@ COPY apps/backend/package.json ./apps/backend/
 # 他にも apps/????/package.json があれば同様に
 
 # 3. 依存関係をインストール
-#    ワークスペース内の全ての package.json とルートの bun.lockb が揃った状態で実行
+#    ワークスペース内の全ての package.json とルートの bun.lock が揃った状態で実行
 RUN bun install --frozen-lockfile --production
 
 # 4. アプリケーションのコード全体をコピー
