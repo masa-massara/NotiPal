@@ -1,3 +1,7 @@
+console.log("DEBUG: NEXT_PUBLIC_NODE_ENV:", process.env.NEXT_PUBLIC_NODE_ENV);
+console.log("DEBUG: NEXT_PUBLIC_API_BASE_URL_PROD:", process.env.NEXT_PUBLIC_API_BASE_URL_PROD);
+
+
 let BASE_URL: string;
 const nodeEnv = process.env.NEXT_PUBLIC_NODE_ENV;
 
