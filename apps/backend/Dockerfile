@@ -29,4 +29,4 @@ COPY . .
 
 # 5. 実行コマンド (これは既存のものを流用)
 #    あんたの backend/package.json の "dev" スクリプトで起動する形やな
-CMD ["bun", "run", "dev"]
+CMD ["bun", "apps/backend/src/main.ts"]
