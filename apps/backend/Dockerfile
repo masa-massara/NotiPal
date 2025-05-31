@@ -18,10 +18,11 @@ COPY bun.lock ./bun.lock
 # --- ここから診断用の変更 ---
 
 # git と diffutils をインストール (ベースイメージに入ってない場合があるため)
-# ルート権限がないイメージの場合は、RUN sudo apt-get ... のようにする必要があるかもしれへん
-# もし apt-get が使えないイメージやったら、apk add git diffutils など、イメージに合わせたコマンドに変えてな
+# oven/bun:1-slim のデフォルトユーザーは bun なので、root権限で実行するために USER を切り替える
 USER root
-RUN apt-get update && apt-get install -y git diffutils --no-install-recommends && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+apt-get install -y git diffutils --no-install-recommends && \
+rm -rf /var/lib/apt/lists/*
 USER bun
 
 # 元のbun.lockをバックアップ
@@ -34,7 +35,7 @@ RUN bun install --production
 # 更新されたbun.lockと元のbun.lockの差分を表示する
 # 差分があってもエラーで止まらないように || true をつけてる
 RUN echo "--- Diff between original bun.lock and bun.lock after 'bun install --production' ---" && \
-git diff --no-index --color=always original-bun.lock bun.lock || true && \
+(git diff --no-index --color=always original-bun.lock bun.lock || true) && \
 echo "--- End of diff ---"
 
 # --- 診断用の変更ここまで ---
