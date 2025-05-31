@@ -6,15 +6,14 @@ steps:
         'build',
         '-t',
         'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-backend-repo/notipal-backend:${COMMIT_SHA}',
-        '.', # Dockerfileがあるディレクトリをビルドコンテキストにする
+        '.', # ビルドコンテキストはプロジェクトルート (GitHub Actionsから渡された /workspace)
         '-f',
-        'Dockerfile', # Dockerfileのパス (このステップの作業ディレクトリからの相対パス)
+        'apps/backend/Dockerfile', # Dockerfileのパスをプロジェクトルートからの相対パスで指定
       ]
 
   # 2. ビルドしたイメージをArtifact Registryにプッシュする
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-backend-repo/notipal-backend:${COMMIT_SHA}']
-    # dirは不要 (イメージ名で指定しているため)
 
   # 3. Cloud Runにデプロイする
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
