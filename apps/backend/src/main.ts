@@ -84,7 +84,7 @@ app.use(
 		origin: [
 			"http://localhost:3000", // フロントエンド開発サーバー
 			"http://localhost:3001", // フロントエンド開発サーバー(別ポートの場合)
-			"https://notipal-frontend-service-937400838385.asia-northeast1.run.app"
+			"https://notipal-frontend-service-937400838385.asia-northeast1.run.app",
 		],
 		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 		allowHeaders: ["Content-Type", "Authorization"],
