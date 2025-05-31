@@ -1,23 +1,11 @@
-console.log("DEBUG: NEXT_PUBLIC_NODE_ENV:", process.env.NEXT_PUBLIC_NODE_ENV);
-console.log("DEBUG: NEXT_PUBLIC_API_BASE_URL_PROD:", process.env.NEXT_PUBLIC_API_BASE_URL_PROD);
-
-
 let BASE_URL: string;
 const nodeEnv = process.env.NEXT_PUBLIC_NODE_ENV;
 
 if (nodeEnv === "production") {
 	BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL_PROD || "";
 	if (!BASE_URL) {
-		console.error(
-			"PRODUCTION: NEXT_PUBLIC_API_BASE_URL_PROD is not set! API calls will fail.",
-		);
 	}
-	console.log(
-		"API Client (NotiPal Frontend) using PRODUCTION base URL:",
-		BASE_URL,
-	);
 } else {
-	// development またはその他
 	BASE_URL =
 		process.env.NEXT_PUBLIC_API_BASE_URL_DEV || "http://localhost:8080/api/v1";
 	console.log(
