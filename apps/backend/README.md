@@ -103,3 +103,5 @@ Notifier App は、Notion データベース内のページの変更をトリガ
 -   [`docs/api_reference.md`](./docs/api_reference.md) - API エンドポイント仕様
 -   [`docs/webhook_processing_flow.md`](./docs/webhook_processing_flow.md) - Webhook 処理フロー解説
 -   [`docs/template_placeholders.md`](./docs/template_placeholders.md) - 通知テンプレートのプレースホルダ仕様
+
+- CI/CDのテスト
