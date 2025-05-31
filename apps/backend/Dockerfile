@@ -17,7 +17,7 @@ FROM base AS deps
 # backend用のpackage.jsonと、プロジェクトルートにあるbun.lockbをコピーする。
 # ビルドコンテキストがプロジェクトルートになったから、それぞれのファイルパスを明示するんや。
 COPY apps/backend/package.json ./package.json
-COPY bun.lockb ./bun.lockb
+COPY bun.lock ./bun.lock
 
 # 依存関係をインストールする。
 # '--production' をつけると、devDependenciesを除いた本番用の依存関係だけが入る。
