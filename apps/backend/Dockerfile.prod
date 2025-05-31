@@ -1,53 +1,71 @@
-# --- ベースイメージ ---
-# 軽量なスリム版のBunイメージを使用する
+# -----------------------------------------------------------------------------
+# ベースイメージ
+# -----------------------------------------------------------------------------
 FROM oven/bun:1-slim AS base
 
-# --- ビルドステージ ---
-# アプリケーションの依存関係をインストールし、場合によってはビルドを行うステージ
-FROM base AS builder
+# アプリケーションのルートディレクトリをコンテナ内に作成
 WORKDIR /usr/src/app
 
-# package.json のみを先にコピー
-COPY package.json ./
-# bun.lock はビルドコンテキストに含まれないので、COPYしない
+# -----------------------------------------------------------------------------
+# 依存関係のインストールステージ (診断用変更あり)
+# -----------------------------------------------------------------------------
+FROM base AS deps
 
-# Dockerfile内で bun install を実行し、依存関係を解決
-# これにより、コンテナ内で bun.lock が適切に扱われる
-# --production フラグは本番用の依存のみインストールする場合
-# --frozen-lockfile は、ルートに bun.lock があり、それに基づいて厳密にインストールする場合に有効やけど、
-# 今はコンテナ内で解決するので、なくてもええかもしれん。
-# プロジェクトの運用に合わせて調整してください。
+# backend用のpackage.jsonと、プロジェクトルートにあるbun.lockをコピーする。
+COPY apps/backend/package.json ./package.json
+COPY bun.lock ./bun.lock
+
+# --- ここから診断用の変更 ---
+
+# git と diffutils をインストール (ベースイメージに入ってない場合があるため)
+# oven/bun:1-slim のデフォルトユーザーは bun なので、root権限で実行するために USER を切り替える
+USER root
+RUN apt-get update && \
+apt-get install -y git diffutils --no-install-recommends && \
+rm -rf /var/lib/apt/lists/*
+USER bun
+
+# 元のbun.lockをバックアップ
+COPY bun.lock ./original-bun.lock
+
+# --frozen-lockfile を一時的に外して、bunにbun.lockを更新させる
+# これで、bun.lock がどう変わるかを確認する
 RUN bun install --production
 
-# アプリケーションのソースコードをコピー
-# (依存関係インストール後に行うことで、ソース変更時のキャッシュを有効活用できる)
-COPY ./src ./src
-COPY ./tsconfig.json ./tsconfig.json
-# もし他に実行に必要なファイルがあればここに追加
+# 更新されたbun.lockと元のbun.lockの差分を表示する
+# 差分があってもエラーで止まらないように || true をつけてる
+RUN echo "--- Diff between original bun.lock and bun.lock after 'bun install --production' ---" && \
+(git diff --no-index --color=always original-bun.lock bun.lock || true) && \
+echo "--- End of diff ---"
 
-# バックエンドでビルドステップが必要な場合 (例: TypeScriptのトランスパイルなど)
-# 必要なければこの RUN コマンドは不要
-# RUN bun run build # package.json に build スクリプトがあれば
+# --- 診断用の変更ここまで ---
 
-# --- 実行ステージ ---
-# 実際にアプリケーションを実行するステージ
-FROM base AS release
-WORKDIR /usr/src/app
+# 元々エラーが出ていたコマンドを再度実行する
+# これで、上に出力された差分が「lockfile had changes」の具体的な内容になるはずや
+RUN bun install --frozen-lockfile --production
 
-# 環境変数NODE_ENVをproductionに設定
+# -----------------------------------------------------------------------------
+# ビルドステージ (もし必要なら)
+# (変更なし)
+#
+# FROM base AS builder
+# WORKDIR /usr/src/app
+# COPY --from=deps /usr/src/app/node_modules ./node_modules
+# COPY apps/backend/ ./
+# RUN bun run build
+# -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# 最終的な実行ステージ
+# -----------------------------------------------------------------------------
+FROM base
+
 ENV NODE_ENV=production
-# アプリがリッスンするポート
-ENV PORT=${PORT:-8080}
-EXPOSE ${PORT}
+EXPOSE 8080
 
-# ビルドステージから、インストール済みの依存関係と必要なソースコードをコピー
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/src ./src
-COPY --from=builder /usr/src/app/tsconfig.json ./tsconfig.json
-COPY --from=builder /usr/src/app/package.json ./package.json
-# ビルダーで生成・更新された bun.lock をコピーする (オプションやけど、整合性のためにあると良いかも)
-COPY --from=builder /usr/src/app/bun.lock ./bun.lock
+COPY --from=deps /usr/src/app/node_modules ./node_modules
+COPY apps/backend/src ./src
+# もし `apps/backend` 直下に `tsconfig.json` など、実行時に必要な設定ファイルがあるなら、それもコピーするんや。
+# 例: COPY apps/backend/tsconfig.json ./tsconfig.json
 
-
-# アプリケーションの起動コマンド
-CMD ["bun", "src/main.ts"]
+CMD ["bun", "run", "start"]
