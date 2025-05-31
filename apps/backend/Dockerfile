@@ -1,55 +1,57 @@
 # -----------------------------------------------------------------------------
-# ベースイメージ
+# ベースイメージ (Bun 1.2.15)
 # -----------------------------------------------------------------------------
     FROM oven/bun:1-slim AS base
     WORKDIR /usr/src/app
     
     # -----------------------------------------------------------------------------
-    # 依存関係のインストールステージ (権限修正とロックファイル生成実験)
+    # 依存関係のインストールとアプリケーションコードのコピー
     # -----------------------------------------------------------------------------
-    FROM base AS deps
-    
+    # backend用のpackage.jsonと、プロジェクトルートにあるbun.lockをコピーする。
+    # これがCIのビルドコンテキストのルートにコピーされる。
     COPY apps/backend/package.json ./package.json
-    # COPY bun.lock ./bun.lock  # ★★★ ロックファイルはまだコピーしない ★★★
+    COPY bun.lock ./bun.lock
     
-    USER root
-    RUN apt-get update && \
-        apt-get install -y git diffutils --no-install-recommends && \
-        rm -rf /var/lib/apt/lists/* && \
-        chown -R bun:bun /usr/src/app # ★★★ WORKDIRの所有者をbunユーザーに変更 ★★★
+    # この時点で WORKDIR (/usr/src/app) には以下がある想定：
+    # - package.json (apps/backend/package.json の内容)
+    # - bun.lock (プロジェクトルートの bun.lock の内容)
     
-    USER bun
+    # 本番用の依存関係をインストール
+    # これが元のエラー箇所。ローカルの bun.lock が正しければ通るはず。
+    RUN bun install --frozen-lockfile --production
     
-    RUN echo "Attempting 'bun install --production' WITHOUT any pre-existing bun.lock..." && \
-        bun install --production && \
-        echo "Finished 'bun install --production'. If successful, a new bun.lock should have been generated." && \
-        echo "Listing files in current directory to check for bun.lock:" && \
-        ls -la && \
-        echo "Content of new bun.lock (if created and not too large):" && \
-        (test -f bun.lock && head -n 50 bun.lock || echo "bun.lock not found or head command failed.") && \
-        (test -f bun.lock && echo "bun.lock was created." || echo "bun.lock was NOT created.")
-    
-    # この後、もし上のステップで bun.lock が生成されていれば、
-    # それを使って --frozen-lockfile で再度インストールを試みる
-    RUN echo "Now attempting 'bun install --frozen-lockfile --production' using the potentially generated bun.lock..." && \
-        bun install --frozen-lockfile --production
-    # -----------------------------------------------------------------------------
-    # (ビルドステージはコメントアウトのまま)
-    # -----------------------------------------------------------------------------
+    # アプリケーションのソースコード全体をコピーする
+    # (注意: これはビルドコンテキストのルートにあるもの全てをコピーするので、
+    #  .dockerignore で不要なファイルを除外することが強く推奨される)
+    COPY . .
+    # もし apps/backend のコードだけをコピーしたいなら、
+    # COPY apps/backend/src ./apps/backend/src
+    # COPY apps/backend/tsconfig.json ./apps/backend/tsconfig.json (もしあれば)
+    # のように、必要なものだけを明示的にコピーする方が良い。
+    # CMDで apps/backend/src/main.ts を実行するなら、
+    # 構造を合わせるために apps/backend をコピーするのが自然かも。
+    # 例: COPY apps/backend ./apps/backend
     
     # -----------------------------------------------------------------------------
-    # 最終的な実行ステージ
+    # 最終的な実行ステージ (単一ステージなので、このまま)
     # -----------------------------------------------------------------------------
-    FROM base
-    
     ENV NODE_ENV=production
     EXPOSE 8080
     
-    COPY --from=deps /usr/src/app/node_modules ./node_modules
-    COPY --from=deps /usr/src/app/bun.lock ./bun.lock
+    # CMDの実行パスを考慮して、もし apps/backend を丸ごとコピーした場合
+    # CMD ["bun", "run", "apps/backend/src/main.ts"] # startスクリプトが適切ならそれでもOK
+    # もし、WORKDIR直下にsrcをコピーしたなら元のままでOK
+    # COPY apps/backend/src ./src
+    # COPY apps/backend/tsconfig.json ./ # (もしあれば)
+    # ↓ このCMDは、WORKDIR直下に apps/backend/package.json の内容があり、
+    #   その中の "start": "bun src/main.ts" を実行する想定。
+    #   そのためには、src も WORKDIR 直下にないとおかしい。
+    #   ここでは、apps/backend の中身を WORKDIR/apps/backend にコピーし、
+    #   CMD で workspace を指定するか、実行パスを調整するのがより正しい。
+    #
+    #   一番シンプルなのは、このDockerfileのWORKDIRを /usr/src/app/apps/backend にしてしまうこと。
+    #   ただし、ルートの bun.lock を使うので、それはそれでパスの調整が必要。
     
-    COPY apps/backend/src ./src
-    # もし `apps/backend` 直下に `tsconfig.json` など、実行時に必要な設定ファイルがあるなら、それもコピーするんや。
-    # 例: COPY apps/backend/tsconfig.json ./tsconfig.json
-    
+    # 今回は、CMDは元のままで、COPY . . で全てコピーされるので、
+    # bunがワークスペースを認識して適切に apps/backend の start を実行することを期待する。
     CMD ["bun", "run", "start"]
