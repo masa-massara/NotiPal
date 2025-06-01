@@ -364,6 +364,51 @@ app.post(
 // Root Endpoint
 app.get("/", (c) => c.text("NotiPal App is running!"));
 
+app.get("/test-firestore-connection", async (c) => {
+	try {
+		console.log(
+			"====== /test-firestore-connection: Test endpoint called ======",
+		);
+		const dbAdmin = getFirestore(); // Admin SDKから取得
+		console.log(
+			"====== /test-firestore-connection: Got Firestore instance via Admin SDK ======",
+		);
+
+		console.log(
+			"====== /test-firestore-connection: Attempting to list collections via Admin SDK ======",
+		);
+		const collections = await dbAdmin.listCollections();
+		const collectionIds = collections.map((col) => col.id);
+		console.log(
+			"====== /test-firestore-connection: Successfully listed collections via Admin SDK ======",
+			collectionIds,
+		);
+
+		return c.json({
+			success: true,
+			message: "Admin SDK connected to Firestore and listed collections.",
+			collections: collectionIds,
+		});
+		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	} catch (error: any) {
+		console.error("====== ERROR in /test-firestore-connection ======");
+		console.error("Error Message:", error.message);
+		console.error("Error Code:", error.code);
+		console.error("Error Details:", error.details);
+		console.error("Error Stack:", error.stack);
+		return c.json(
+			{
+				success: false,
+				error: "Failed to connect or list collections via Admin SDK.",
+				details: error.message,
+				code: error.code,
+				fullError: JSON.stringify(error, Object.getOwnPropertyNames(error)),
+			},
+			500,
+		);
+	}
+});
+
 export default {
 	port: process.env.PORT || 8080,
 	fetch: app.fetch,
