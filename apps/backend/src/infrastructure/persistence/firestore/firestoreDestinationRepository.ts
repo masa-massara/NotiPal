@@ -80,10 +80,8 @@ export class FirestoreDestinationRepository implements DestinationRepository {
 	}
 
 	async findAll(userId: string): Promise<Destination[]> {
-		// ★ userId を引数に追加
-		console.log(
-			`Firestore: Attempting to find all destinations for user ${userId}...`,
-		);
+		console.log("====== FirestoreDestinationRepository: findAll method started ======");
+		console.log(`FirestoreDestinationRepository: Attempting to find all destinations for user [${userId}]...`);
 		const snapshot = await this.db
 			.collection(DESTINATIONS_COLLECTION)
 			.where("userId", "==", userId) // ★ userId でフィルタリング

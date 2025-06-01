@@ -19,6 +19,9 @@ export class ListNotionDatabasesUseCase {
 	async execute(
 		input: ListNotionDatabasesInput,
 	): Promise<ListNotionDatabasesOutput> {
+		console.log("====== ListDestinationsUseCase: execute method started ======");
+		console.log("ListDestinationsUseCase: Input userId:", input.userId);
+
 		const { integrationId, userId } = input;
 
 		// 1. Fetch UserNotionIntegration

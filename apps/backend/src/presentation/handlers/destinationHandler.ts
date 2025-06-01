@@ -138,16 +138,16 @@ export const listDestinationsHandlerFactory = (
 ) => {
 	return async (c: Context): Promise<Response> => {
 		try {
-			const userId = c.get("userId") as string | undefined; // ★ userIdを取得
+			console.log("====== listDestinationsHandler: Request received ======");
+			const userId = c.get("userId") as string | undefined;
 			if (!userId) {
-				console.error(
-					"Error in listDestinationsHandler: userId not found in context.",
-				);
+				console.error("CRITICAL_ERROR in listDestinationsHandler: userId not found in context.");
 				return c.json(
 					{ error: "Unauthorized", message: "User ID not found." },
 					401,
 				);
 			}
+			console.log(`listDestinationsHandler: userId from context: [${userId}]`);
 
 			const input: ListDestinationsInput = { userId: userId }; // ★ InputにuserIdをセット
 			console.log(
