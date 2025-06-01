@@ -22,7 +22,7 @@ steps:
       [
         'run',
         'deploy',
-        'notipal-backend-service', # Cloud Runのサービス名
+        'notipal-backend-service',
         '--image',
         'asia-northeast1-docker.pkg.dev/${PROJECT_ID}/notipal-backend-repo/notipal-backend:${COMMIT_SHA}',
         '--region',
@@ -30,9 +30,9 @@ steps:
         '--platform',
         'managed',
         '--quiet',
-        '--service-account', # ランタイムサービスアカウント
-        'notipal-cloudrun-sa@${PROJECT_ID}.iam.gserviceaccount.com',
-        '--set-secrets=ENCRYPTION_KEY=ENCRYPTION_KEY:latest', # Secret ManagerからENCRYPTION_KEYを環境変数として設定
+        '--service-account',
+        'firestore-test-sa@notipal-prod.iam.gserviceaccount.com',
+        '--set-secrets=ENCRYPTION_KEY=ENCRYPTION_KEY:latest',
       ]
 
 # イメージを保存する場所 (ビルドステップと一致させる)

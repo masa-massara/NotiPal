@@ -16,9 +16,6 @@ export class FirestoreDestinationRepository implements DestinationRepository {
 	constructor() {
 		// Firebase Admin SDKの初期化はmain.tsで行うため、ここでは呼び出さない
 		this.db = getFirestore();
-		console.log(
-			"FirestoreDestinationRepository instance created, using centrally initialized Firebase Admin SDK.",
-		);
 	}
 
 	async save(destination: Destination): Promise<void> {

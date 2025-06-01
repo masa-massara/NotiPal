@@ -98,21 +98,21 @@ if (!getApps().length) {
 	let projectIdMessage: string;
 
 	if (process.env.NODE_ENV === "production") {
-		console.log(
-			"Initializing Firebase Admin SDK for PRODUCTION environment (NotiPal).",
-		);
+		// console.log(
+		// 	"Initializing Firebase Admin SDK for PRODUCTION environment (NotiPal).",
+		// );
 		serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS_PROD;
 		projectIdMessage = "Production NotiPal Firebase Project";
 		if (!serviceAccountPath) {
-			console.log(
-				"PRODUCTION (NotiPal): GOOGLE_APPLICATION_CREDENTIALS_PROD not set. Attempting to use default credentials (e.g., Cloud Run service account).",
-			);
+			// console.log(
+			// 	"PRODUCTION (NotiPal): GOOGLE_APPLICATION_CREDENTIALS_PROD not set. Attempting to use default credentials (e.g., Cloud Run service account).",
+			// );
 		}
 	} else {
 		// development またはその他の未指定の場合 (デフォルト開発)
-		console.log(
-			"Initializing Firebase Admin SDK for DEVELOPMENT environment (NotiPal).",
-		);
+		// console.log(
+		// 	"Initializing Firebase Admin SDK for DEVELOPMENT environment (NotiPal).",
+		// );
 		serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS_DEV;
 		projectIdMessage = "Development NotiPal Firebase Project";
 		if (!serviceAccountPath) {
@@ -127,16 +127,16 @@ if (!getApps().length) {
 
 	try {
 		if (serviceAccountPath) {
-			console.log(
-				`Initializing Firebase Admin SDK with service account from: ${serviceAccountPath} for ${projectIdMessage}.`,
-			);
+			// console.log(
+			// 	`Initializing Firebase Admin SDK with service account from: ${serviceAccountPath} for ${projectIdMessage}.`,
+			// );
 			initializeApp({
 				credential: cert(serviceAccountPath),
 			});
 		} else if (process.env.NODE_ENV === "production") {
-			console.log(
-				"Initializing Firebase Admin SDK with default credentials for PRODUCTION (NotiPal) (e.g., Application Default Credentials on Cloud Run).",
-			);
+			// console.log(
+			// 	"Initializing Firebase Admin SDK with default credentials for PRODUCTION (NotiPal) (e.g., Application Default Credentials on Cloud Run).",
+			// );
 			initializeApp();
 		} else {
 			// 開発環境でサービスアカウントパスがない場合は上でエラーにしているので、ここは通常通らない
@@ -144,9 +144,9 @@ if (!getApps().length) {
 				"Firebase Admin SDK service account path configuration error for NotiPal.",
 			);
 		}
-		console.log(
-			"Firebase Admin SDK initialized centrally in main.ts (NotiPal).",
-		);
+		// console.log(
+		// 	"Firebase Admin SDK initialized centrally in main.ts (NotiPal).",
+		// );
 	} catch (e: unknown) {
 		const errorMessageText = e instanceof Error ? e.message : String(e);
 		console.error(
@@ -157,8 +157,6 @@ if (!getApps().length) {
 			`Firebase Admin SDK initialization failed (NotiPal): ${errorMessageText}`,
 		);
 	}
-} else {
-	console.log("Firebase Admin SDK already initialized (NotiPal).");
 }
 
 // --- Environment Variable Checks ---
@@ -201,7 +199,7 @@ try {
 	userNotionIntegrationRepository =
 		new FirestoreUserNotionIntegrationRepository(firestoreInstance); // 明示的にインスタンスを渡す
 	persistenceTypeMessage = "Persistence: Firestore (NotiPal)";
-	console.log("Firestore repositories initialized successfully for NotiPal.");
+	// console.log("Firestore repositories initialized successfully for NotiPal.");
 } catch (error) {
 	console.error(
 		"Failed to initialize Firestore repositories for NotiPal:",
@@ -368,8 +366,3 @@ export default {
 	port: process.env.PORT || 8080,
 	fetch: app.fetch,
 };
-
-console.log(`NotiPal app is running on port ${process.env.PORT || 8080}`);
-if (process.env.NODE_ENV !== "production" && persistenceTypeMessage) {
-	console.log(persistenceTypeMessage);
-}

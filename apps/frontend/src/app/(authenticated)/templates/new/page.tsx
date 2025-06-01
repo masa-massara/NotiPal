@@ -107,7 +107,7 @@ function NewTemplatePage() {
 	const selectedNotionDatabaseId = watch("notionDatabaseId");
 
 	// ログ1: 選択されたNotion Integration IDの確認
-	console.log("【FE Log 1】選択中のNotion Integration ID:", selectedNotionIntegrationId);
+	// console.log("【FE Log 1】選択中のNotion Integration ID:", selectedNotionIntegrationId);
 
 	const { data: notionIntegrations, isLoading: isLoadingNotion } = useQuery<
 		NotionIntegration[],
@@ -140,19 +140,19 @@ function NewTemplatePage() {
 		queryKey: ["notionDatabases", selectedNotionIntegrationId],
 		queryFn: async () => {
 			// ログ2: API呼び出し開始の確認
-			console.log(
-				`【FE Log 2】getNotionDatabases API呼び出し開始 (Integration ID: ${selectedNotionIntegrationId})`,
-			);
+			// console.log(
+			// 	`【FE Log 2】getNotionDatabases API呼び出し開始 (Integration ID: ${selectedNotionIntegrationId})`,
+			// );
 			if (!selectedNotionIntegrationId) {
 				// ログ3: Integration ID未選択時のスキップ確認
-				console.log(
-					"【FE Log 3】Integration ID未選択のため、API呼び出しスキップ",
-				);
+				// console.log(
+				// 	"【FE Log 3】Integration ID未選択のため、API呼び出しスキップ",
+				// );
 				return Promise.resolve([]);
 			}
 			const result = await getNotionDatabases(api, selectedNotionIntegrationId);
 			// ログ4: API呼び出し結果（生データ）の確認
-			console.log("【FE Log 4】getNotionDatabases APIレスポンス:", result);
+			// console.log("【FE Log 4】getNotionDatabases APIレスポンス:", result);
 			return result;
 		},
 		enabled: !!api && !!selectedNotionIntegrationId,
@@ -160,13 +160,13 @@ function NewTemplatePage() {
 
 	// ログ5: useQueryから取得した各種状態の確認
 	useEffect(() => {
-		console.log("【FE Log 5.1】Notionデータベース一覧 (data):", notionDatabases);
-		console.log("【FE Log 5.2】Notionデータベース一覧ロード中 (isLoading):", isLoadingNotionDatabases);
-		console.log("【FE Log 5.3】Notionデータベース一覧フェッチ中 (isFetching):", isFetchingNotionDatabases);
+		// console.log("【FE Log 5.1】Notionデータベース一覧 (data):", notionDatabases);
+		// console.log("【FE Log 5.2】Notionデータベース一覧ロード中 (isLoading):", isLoadingNotionDatabases);
+		// console.log("【FE Log 5.3】Notionデータベース一覧フェッチ中 (isFetching):", isFetchingNotionDatabases);
 		if (errorNotionDatabases) {
 			console.error("【FE Log 5.4】Notionデータベース一覧取得エラー (error):", errorNotionDatabases);
 		}
-	}, [notionDatabases, isLoadingNotionDatabases, errorNotionDatabases, isFetchingNotionDatabases]);
+	}, [errorNotionDatabases]);
 
 	const {
 		data: databaseProperties,
@@ -350,9 +350,9 @@ function NewTemplatePage() {
 										<SelectContent>
 											{/* ログ6: プルダウンのレンダリング直前のデータ確認 */}
 											{(() => {
-												console.log("【FE Log 6】SelectContent内のnotionDatabases:", notionDatabases);
-												console.log("【FE Log 6.1】isLoadingNotionDatabases:", isLoadingNotionDatabases);
-												console.log("【FE Log 6.2】errorNotionDatabases:", errorNotionDatabases);
+												// console.log("【FE Log 6】SelectContent内のnotionDatabases:", notionDatabases);
+												// console.log("【FE Log 6.1】isLoadingNotionDatabases:", isLoadingNotionDatabases);
+												// console.log("【FE Log 6.2】errorNotionDatabases:", errorNotionDatabases);
 												return null;
 											})()}
 											{isLoadingNotionDatabases || isFetchingNotionDatabases ? (
