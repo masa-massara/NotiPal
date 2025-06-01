@@ -29,20 +29,25 @@ function listUserAccessibleDatabasesHandlerFactory(
 	useCase: ListNotionDatabasesUseCase,
 ) {
 	return async (c: Context) => {
+		// ログ 1: ハンドラ呼び出し確認
+		console.log("【BE Log 1 at Handler】listUserAccessibleDatabasesHandler - Entry");
 		try {
 			const integrationId = c.req.param("integrationId");
-			const userId = c.var.userId; // Or c.get("userId")
+			const userId = c.var.userId;
+
+			// ログ 2: パラメータとuserIdの確認
+			console.log(`【BE Log 2 at Handler】Integration ID: ${integrationId}, User ID: ${userId}`);
 
 			if (typeof userId !== "string") {
 				console.error(
-					"CRITICAL: userId not found in context or is not a string after authMiddleware.",
+					"【BE Log 2.1 at Handler】CRITICAL: userId not found in context or is not a string after authMiddleware.",
 				);
 				throw new HTTPException(401, {
 					message: "Unauthorized: User ID not found or invalid.",
 				});
 			}
-
 			if (!integrationId) {
+				console.error("【BE Log 2.2 at Handler】integrationId path parameter is required.");
 				throw new HTTPException(400, {
 					message: "integrationId path parameter is required",
 				});
@@ -53,17 +58,19 @@ function listUserAccessibleDatabasesHandlerFactory(
 				userId,
 			};
 
+			// ログ 3: ユースケース呼び出し直前
+			console.log("【BE Log 3 at Handler】Calling ListNotionDatabasesUseCase with input:", JSON.stringify(input, null, 2));
 			const output: ListNotionDatabasesOutput = await useCase.execute(input);
+			// ログ 4: ユースケースからの戻り値
+			console.log("【BE Log 4 at Handler】ListNotionDatabasesUseCase returned output:", JSON.stringify(output, null, 2));
+
 			return c.json(output, 200);
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		} catch (error: any) {
-			console.error("Error in listUserAccessibleDatabasesHandler:", error);
+			// ログ 5: エラー発生時
+			console.error("【BE Log 5 at Handler】Error in listUserAccessibleDatabasesHandler:", error.message, error.cause ? `Cause: ${JSON.stringify(error.cause)}` : "");
 			if (error instanceof HTTPException) {
-				// Re-throw HTTPException directly if it's already one
-				// This allows specific error codes from the use case to propagate
 				throw error;
 			}
-			// For other types of errors, wrap them in a generic 500 error
 			throw new HTTPException(500, {
 				message: "Failed to list accessible Notion databases",
 				cause: error.message || error,

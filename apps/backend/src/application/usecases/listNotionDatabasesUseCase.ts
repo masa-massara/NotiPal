@@ -21,14 +21,19 @@ export class ListNotionDatabasesUseCase {
 	): Promise<ListNotionDatabasesOutput> {
 		const { integrationId, userId } = input;
 
+		// ログ 6: ユースケース実行開始
+		console.log(`【BE Log 6 at UseCase】ListNotionDatabasesUseCase - Entry for integrationId: ${integrationId}, userId: ${userId}`);
+
 		// 1. Fetch UserNotionIntegration
 		const integration = await this.userNotionIntegrationRepository.findById(
 			integrationId,
 			userId,
 		);
+		// ログ 7: 連携情報の取得結果
+		console.log(`【BE Log 7 at UseCase】Fetched UserNotionIntegration:`, integration ? `ID: ${integration.id}, Name: ${integration.integrationName}` : "Not Found");
+
 		if (!integration) {
-			// Standard practice is to throw an error that the presentation layer can interpret.
-			// Hono's HTTPException is suitable here.
+			console.warn(`【BE Log 7.1 at UseCase】Notion integration with ID ${integrationId} not found or not accessible by user.`);
 			throw new HTTPException(404, {
 				message: `Notion integration with ID ${integrationId} not found or not accessible by user.`,
 				cause: "UserNotionIntegrationNotFound",
@@ -38,13 +43,14 @@ export class ListNotionDatabasesUseCase {
 		// 2. Decrypt notionIntegrationToken
 		let decryptedToken: string;
 		try {
-			// Corrected property name based on src/domain/entities/userNotionIntegration.ts
 			decryptedToken = await this.encryptionService.decrypt(
 				integration.notionIntegrationToken,
 			);
+			// ログ 8: トークン復号化成功
+			console.log(`【BE Log 8 at UseCase】Token decrypted successfully for integration ID ${integrationId}.`);
 		} catch (error) {
 			console.error(
-				`Failed to decrypt token for integration ID ${integrationId}:`,
+				`【BE Log 8.1 at UseCase】Failed to decrypt token for integration ID ${integrationId}:`,
 				error,
 			);
 			throw new HTTPException(500, {
@@ -55,8 +61,12 @@ export class ListNotionDatabasesUseCase {
 
 		// 3. Call notionApiService.listAccessibleDatabases()
 		try {
+			// ログ 9: NotionApiService呼び出し直前
+			console.log(`【BE Log 9 at UseCase】Calling notionApiService.listAccessibleDatabases for integration ID: ${integrationId}`);
 			const accessibleDatabases =
 				await this.notionApiService.listAccessibleDatabases(decryptedToken);
+			// ログ 10: NotionApiServiceからの戻り値
+			console.log(`【BE Log 10 at UseCase】notionApiService.listAccessibleDatabases returned:`, JSON.stringify(accessibleDatabases, null, 2));
 
 			// 4. Map to ListNotionDatabasesOutput
 			const output: ListNotionDatabasesOutput = accessibleDatabases.map(
@@ -65,20 +75,19 @@ export class ListNotionDatabasesUseCase {
 					name: db.name,
 				}),
 			);
-
+			// ログ 11: 最終的な出力
+			console.log(`【BE Log 11 at UseCase】Final output for integration ID ${integrationId}:`, JSON.stringify(output, null, 2));
 			return output;
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		} catch (error: any) {
-			// Log the error from Notion API service
+			// ログ 12: NotionApiService呼び出し中のエラー
 			console.error(
-				`Error fetching accessible databases from Notion API for integration ID ${integrationId}:`,
-				error,
+				`【BE Log 12 at UseCase】Error fetching accessible databases from Notion API for integration ID ${integrationId}:`,
+				error.message, error.cause ? `Cause: ${JSON.stringify(error.cause)}` : ""
 			);
-			// Check if it's an HTTPException from a deeper layer (like NotionApiClient if it threw one)
 			if (error instanceof HTTPException) {
 				throw error;
 			}
-			// Otherwise, wrap it in a generic 500 error
 			throw new HTTPException(500, {
 				message:
 					"An error occurred while fetching accessible databases from Notion.",
