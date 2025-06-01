@@ -138,10 +138,11 @@ export const listDestinationsHandlerFactory = (
 ) => {
 	return async (c: Context): Promise<Response> => {
 		try {
-			console.log("====== listDestinationsHandler: Request received ======");
 			const userId = c.get("userId") as string | undefined;
 			if (!userId) {
-				console.error("CRITICAL_ERROR in listDestinationsHandler: userId not found in context.");
+				console.error(
+					"CRITICAL_ERROR in listDestinationsHandler: userId not found in context.",
+				);
 				return c.json(
 					{ error: "Unauthorized", message: "User ID not found." },
 					401,
