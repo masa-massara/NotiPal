@@ -31,7 +31,7 @@ steps:
         'managed',
         '--quiet',
         '--service-account',
-        'firestore-test-sa@notipal-prod.iam.gserviceaccount.com',
+        'notipal-cloudrun-sa@${PROJECT_ID}.iam.gserviceaccount.com',
         '--set-secrets=ENCRYPTION_KEY=ENCRYPTION_KEY:latest',
       ]
 
