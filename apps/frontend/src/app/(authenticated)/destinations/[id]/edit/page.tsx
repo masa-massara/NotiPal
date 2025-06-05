@@ -1,11 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { updateDestinationApiSchema } from "@notipal/common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import type { z } from "zod";
 
 // AppLayout is now applied by the group's layout.tsx
 import PageHeader from "@/components/layout/PageHeader";
@@ -26,16 +27,9 @@ import {
 	getDestination,
 	updateDestination,
 } from "@/services/destinationService";
-import type { Destination } from "@/types/destination";
+import type { Destination } from "@notipal/common";
 
-const formSchema = z.object({
-	name: z.string().optional(),
-	webhookUrl: z
-		.string()
-		.min(1, { message: "Webhook URL is required." })
-		.url({ message: "Please enter a valid URL." }),
-});
-
+const formSchema = updateDestinationApiSchema;
 type FormData = z.infer<typeof formSchema>;
 
 function EditDestinationPage() {
@@ -73,14 +67,17 @@ function EditDestinationPage() {
 		if (destination) {
 			reset({
 				name: destination.name || "",
-				webhookUrl: destination.webhookUrl,
+				webhookUrl: destination.webhookUrl ?? "",
 			});
 		}
 	}, [destination, reset]);
 
 	const mutation = useMutation({
 		mutationFn: (formData: FormData) =>
-			updateDestination(api, id as string, formData), // Updated mutationFn
+			updateDestination(api, id as string, {
+				...formData,
+				webhookUrl: formData.webhookUrl ?? "",
+			}),
 		onSuccess: () => {
 			toast({
 				title: "Success",
@@ -162,8 +159,8 @@ function EditDestinationPage() {
 									placeholder="e.g., My Slack Channel"
 									{...register("name")}
 								/>
-								{errors.name && (
-									<p className="text-sm text-red-600">{errors.name.message}</p>
+								{typeof errors.name?.message === "string" && (
+									<p className="text-red-600 text-sm">{errors.name.message}</p>
 								)}
 							</div>
 							<div className="space-y-2">
@@ -173,12 +170,12 @@ function EditDestinationPage() {
 									placeholder="https://hooks.example.com/..."
 									{...register("webhookUrl")}
 								/>
-								{errors.webhookUrl && (
-									<p className="text-sm text-red-600">
+								{typeof errors.webhookUrl?.message === "string" && (
+									<p className="text-red-600 text-sm">
 										{errors.webhookUrl.message}
 									</p>
 								)}
-								<p className="text-xs text-muted-foreground">
+								<p className="text-muted-foreground text-xs">
 									Ensure this URL is correct. Changes will affect where
 									notifications are sent.
 								</p>

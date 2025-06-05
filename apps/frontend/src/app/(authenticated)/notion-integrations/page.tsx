@@ -27,7 +27,7 @@ import {
 	deleteUserNotionIntegrationMutationAtom, // 正しいatomをインポート
 	userNotionIntegrationsQueryAtom, // クエリ用のatomもインポート
 } from "@/store/userNotionIntegrationAtoms";
-import type { NotionIntegration } from "@/types/notionIntegration";
+import type { UserNotionIntegration as NotionIntegration } from "@notipal/common";
 import { useAtom } from "jotai";
 // useAtomValue は userNotionIntegrationsAtom を直接読む場合は不要になる可能性があります
 // import { useAtomValue } from "jotai";

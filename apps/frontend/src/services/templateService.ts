@@ -1,9 +1,14 @@
 import { fetchApiClient } from "@/lib/apiClient";
+import {
+	type Template,
+	apiResponseSchema,
+	templateSchema,
+} from "@notipal/common";
 import type {
-	CreateTemplateData,
-	Template,
-	UpdateTemplateData,
-} from "@/types/template";
+	CreateTemplateApiInput as CreateTemplateData,
+	UpdateTemplateApiInput as UpdateTemplateData,
+} from "@notipal/common";
+import { z } from "zod";
 
 /**
  * Fetches all templates for the current user.
@@ -12,8 +17,24 @@ export const getTemplates = async (idToken: string): Promise<Template[]> => {
 	const response = await fetchApiClient("/templates", idToken, {
 		method: "GET",
 	});
-	// No need to check response.ok here if fetchApiClient handles it by throwing an error
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(z.array(templateSchema)).safeParse(
+		json,
+	);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**
@@ -27,7 +48,22 @@ export const getTemplate = async (
 	const response = await fetchApiClient(`/templates/${id}`, idToken, {
 		method: "GET",
 	});
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(templateSchema).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**
@@ -45,7 +81,22 @@ export const createTemplate = async (
 		},
 		body: JSON.stringify(data),
 	});
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(templateSchema).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**
@@ -65,7 +116,22 @@ export const updateTemplate = async (
 		},
 		body: JSON.stringify(data),
 	});
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(templateSchema).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**
