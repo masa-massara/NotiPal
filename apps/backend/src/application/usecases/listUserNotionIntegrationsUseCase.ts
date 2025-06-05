@@ -1,26 +1,14 @@
+import type { InternalUserNotionIntegration } from "@notipal/common";
 import type { UserNotionIntegrationRepository } from "../../domain/repositories/userNotionIntegrationRepository";
-import {
-	type ListUserNotionIntegrationsInput,
-	type ListUserNotionIntegrationsOutput,
-	ListUserNotionIntegrationsOutputItem,
-} from "../dtos/userNotionIntegrationDTOs";
 
-export class ListUserNotionIntegrationsUseCase {
-	constructor(
-		private readonly userNotionIntegrationRepository: UserNotionIntegrationRepository,
-	) {}
-
-	async execute(
-		input: ListUserNotionIntegrationsInput,
-	): Promise<ListUserNotionIntegrationsOutput> {
+export const listUserNotionIntegrationsUseCase = (deps: {
+	userNotionIntegrationRepository: UserNotionIntegrationRepository;
+}) => {
+	return async (input: { userId: string }): Promise<
+		Omit<InternalUserNotionIntegration, "notionIntegrationToken">[]
+	> => {
 		const integrations =
-			await this.userNotionIntegrationRepository.findAllByUserId(input.userId);
-
-		return integrations.map((integration) => ({
-			id: integration.id,
-			integrationName: integration.integrationName,
-			createdAt: integration.createdAt,
-			updatedAt: integration.updatedAt,
-		}));
-	}
-}
+			await deps.userNotionIntegrationRepository.findAllByUserId(input.userId);
+		return integrations.map(({ notionIntegrationToken, ...rest }) => rest);
+	};
+};

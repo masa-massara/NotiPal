@@ -1,5 +1,5 @@
 // src/application/usecases/listDestinationsUseCase.ts
-import type { Destination } from "../../domain/entities/destination";
+import type { Destination as DestinationData } from "@notipal/common";
 import type { DestinationRepository } from "../../domain/repositories/destinationRepository";
 
 // ユースケースの入力 (ユーザーID)
@@ -9,20 +9,23 @@ export interface ListDestinationsInput {
 }
 
 // ユースケースの出力 (Destinationの配列)
-export type ListDestinationsOutput = Destination[];
+export type ListDestinationsOutput = DestinationData[];
 
-export class ListDestinationsUseCase {
-	constructor(private readonly destinationRepository: DestinationRepository) {}
+export const createListDestinationsUseCase = (dependencies: {
+	destinationRepository: DestinationRepository;
+}) => {
+	const { destinationRepository } = dependencies;
 
-	async execute(input: ListDestinationsInput): Promise<ListDestinationsOutput> {
-		// ★ 引数をInput DTOに変更
+	return async (
+		input: ListDestinationsInput,
+	): Promise<ListDestinationsOutput> => {
 		console.log(
 			`ListDestinationsUseCase: Attempting to execute findAll for user ${input.userId}...`,
 		); // ★ ログにuserIdを追加
-		const destinations = await this.destinationRepository.findAll(input.userId); // ★ findAllにuserIdを渡す
+		const destinations = await destinationRepository.findAll(input.userId); // ★ findAllにuserIdを渡す
 		console.log(
 			`ListDestinationsUseCase: Found ${destinations.length} destinations for user ${input.userId}.`, // ★ ログにuserIdを追加
 		);
 		return destinations;
-	}
-}
+	};
+};

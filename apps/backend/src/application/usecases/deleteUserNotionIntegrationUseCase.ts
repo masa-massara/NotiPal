@@ -1,37 +1,29 @@
 import type { UserNotionIntegrationRepository } from "../../domain/repositories/userNotionIntegrationRepository";
-import type {
-	DeleteUserNotionIntegrationInput,
-	DeleteUserNotionIntegrationOutput,
-} from "../dtos/userNotionIntegrationDTOs";
 
-export class DeleteUserNotionIntegrationUseCase {
-	constructor(
-		private readonly userNotionIntegrationRepository: UserNotionIntegrationRepository,
-	) {}
-
-	async execute(
-		input: DeleteUserNotionIntegrationInput,
-	): Promise<DeleteUserNotionIntegrationOutput> {
-		const integration = await this.userNotionIntegrationRepository.findById(
+export const deleteUserNotionIntegrationUseCase = (deps: {
+	userNotionIntegrationRepository: UserNotionIntegrationRepository;
+}) => {
+	return async (input: { integrationId: string; userId: string }): Promise<{
+		success: boolean;
+		message: string;
+	}> => {
+		const integration = await deps.userNotionIntegrationRepository.findById(
 			input.integrationId,
 			input.userId,
 		);
-
 		if (!integration) {
 			return {
 				success: false,
 				message: `Notion integration with ID ${input.integrationId} not found or user does not have permission.`,
 			};
 		}
-
-		await this.userNotionIntegrationRepository.deleteById(
+		await deps.userNotionIntegrationRepository.deleteById(
 			input.integrationId,
 			input.userId,
 		);
-
 		return {
 			success: true,
 			message: "Notion integration deleted successfully.",
 		};
-	}
-}
+	};
+};

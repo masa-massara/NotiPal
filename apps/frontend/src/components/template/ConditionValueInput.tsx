@@ -8,8 +8,16 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { NotionProperty } from "@/types/notionIntegration";
+// MEMO: NotionProperty型は一時的にローカル定義、将来的に共通化推奨
 import { type Control, Controller } from "react-hook-form";
+
+// 一時的な型定義（本来は共通パッケージに移すべき）
+type NotionProperty = {
+	id: string;
+	name: string;
+	type: string;
+	options?: { id: string; name: string; color?: string }[];
+};
 
 interface ConditionValueInputProps {
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>

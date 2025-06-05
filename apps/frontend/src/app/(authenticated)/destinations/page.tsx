@@ -28,7 +28,7 @@ import {
 	deleteDestination,
 	getDestinations,
 } from "@/services/destinationService";
-import type { Destination } from "@/types/destination";
+import type { Destination } from "@notipal/common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";

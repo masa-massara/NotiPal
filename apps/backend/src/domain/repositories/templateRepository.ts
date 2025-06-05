@@ -1,5 +1,5 @@
 // src/domain/repositories/templateRepository.ts
-import type { Template } from "../entities/template";
+import type { Template } from "@notipal/common";
 
 export interface TemplateRepository {
 	save(template: Template): Promise<void>;

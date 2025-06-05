@@ -31,14 +31,14 @@ import {
 import { getTemplate, updateTemplate } from "@/services/templateService";
 import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService";
 import { idTokenAtom } from "@/store/globalAtoms";
-import type { Destination } from "@/types/destination";
-import type {
-	NotionDatabase,
-	NotionIntegration,
-	NotionProperty,
-} from "@/types/notionIntegration";
-import type { Template, UpdateTemplateData } from "@/types/template";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type {
+	Destination,
+	UserNotionIntegration as NotionIntegration,
+	Template,
+	UpdateTemplateApiInput as UpdateTemplateData,
+} from "@notipal/common";
+import { updateTemplateApiSchema } from "@notipal/common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { Trash2 } from "lucide-react";
@@ -46,30 +46,19 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect, useCallback } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import * as z from "zod";
+import type { z } from "zod";
 
-const formSchema = z.object({
-	name: z.string().min(1, { message: "Template name is required." }),
-	userNotionIntegrationId: z
-		.string()
-		.min(1, { message: "Notion integration is required." }),
-	notionDatabaseId: z
-		.string()
-		.min(1, { message: "Notion Database ID is required." }),
-	conditions: z
-		.array(
-			z.object({
-				propertyId: z.string().min(1, "Property selection is required."),
-				operator: z.string().min(1, "Operator selection is required."),
-				value: z.string().optional(),
-			}),
-		)
-		.optional(),
-	body: z.string().min(1, { message: "Message body is required." }),
-	destinationId: z.string().min(1, { message: "Destination is required." }),
-});
-
+const formSchema = updateTemplateApiSchema;
 type FormData = z.infer<typeof formSchema>;
+
+// 一時的な型定義（本来は共通パッケージに移すべき）
+type NotionDatabase = { id: string; name: string };
+type NotionProperty = {
+	id: string;
+	name: string;
+	type: string;
+	options?: { id: string; name: string; color?: string }[];
+};
 
 function EditTemplatePage() {
 	const router = useRouter();
@@ -191,7 +180,7 @@ function EditTemplatePage() {
 		if (template) {
 			reset({
 				name: template.name,
-				userNotionIntegrationId: template.userNotionIntegrationId,
+				userNotionIntegrationId: template.userNotionIntegrationId ?? "",
 				notionDatabaseId: template.notionDatabaseId,
 				conditions:
 					template.conditions?.map((c) => ({ ...c, value: c.value ?? "" })) ||
@@ -316,7 +305,7 @@ function EditTemplatePage() {
 						<div className="space-y-2">
 							<Label htmlFor="name">Template Name</Label>
 							<Input id="name" {...register("name")} />
-							{errors.name && (
+							{typeof errors.name?.message === "string" && (
 								<p className="text-red-600 text-sm">{errors.name.message}</p>
 							)}
 						</div>
@@ -603,7 +592,8 @@ function EditTemplatePage() {
 													)
 												}
 											/>
-											{errors.conditions?.[index]?.value && (
+											{typeof errors.conditions?.[index]?.value?.message ===
+												"string" && (
 												<p className="mt-1 text-red-600 text-xs">
 													{errors.conditions[index]?.value?.message}
 												</p>

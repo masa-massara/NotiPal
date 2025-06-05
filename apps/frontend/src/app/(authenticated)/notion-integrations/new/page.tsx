@@ -23,25 +23,14 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { createUserNotionIntegrationMutationAtom } from "@/store/userNotionIntegrationAtoms";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createUserNotionIntegrationApiSchema } from "@notipal/common";
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import type { z } from "zod";
 
-const formSchema = z.object({
-	integrationName: z
-		.string()
-		.min(1, { message: "連携名は必須です。" })
-		.max(50, { message: "連携名は50文字以内で入力してください。" }),
-	notionIntegrationToken: z
-		.string()
-		.min(1, { message: "Notionインテグレーションシークレットは必須です。" })
-		.startsWith("ntn_", {
-			message: "シークレットは「ntn_」で始まる必要があります。",
-		}),
-});
-
+const formSchema = createUserNotionIntegrationApiSchema;
 type FormData = z.infer<typeof formSchema>;
 
 function NewNotionIntegrationPage() {

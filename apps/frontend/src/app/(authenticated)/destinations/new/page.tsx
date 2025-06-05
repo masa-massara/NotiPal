@@ -17,19 +17,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useApiClient } from "@/hooks/useApiClient"; // Added import
 import { createDestination } from "@/services/destinationService";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createDestinationApiSchema } from "@notipal/common";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import type { z } from "zod";
 
-const formSchema = z.object({
-	name: z.string().optional(),
-	webhookUrl: z
-		.string()
-		.min(1, { message: "Webhook URL is required." })
-		.url({ message: "Please enter a valid URL." }),
-});
-
+const formSchema = createDestinationApiSchema;
 type FormData = z.infer<typeof formSchema>;
 
 function NewDestinationPage() {
@@ -95,8 +89,8 @@ function NewDestinationPage() {
 									placeholder="e.g., My Slack Channel"
 									{...register("name")}
 								/>
-								{errors.name && (
-									<p className="text-sm text-red-600">{errors.name.message}</p>
+								{typeof errors.name?.message === "string" && (
+									<p className="text-red-600 text-sm">{errors.name.message}</p>
 								)}
 							</div>
 							<div className="space-y-2">
@@ -106,12 +100,12 @@ function NewDestinationPage() {
 									placeholder="https://hooks.example.com/..."
 									{...register("webhookUrl")}
 								/>
-								{errors.webhookUrl && (
-									<p className="text-sm text-red-600">
+								{typeof errors.webhookUrl?.message === "string" && (
+									<p className="text-red-600 text-sm">
 										{errors.webhookUrl.message}
 									</p>
 								)}
-								<p className="text-xs text-muted-foreground">
+								<p className="text-muted-foreground text-xs">
 									This is the URL that will receive notification data. Ensure
 									it's correct. For services like Slack or Discord, find this in
 									the channel/server settings under "Integrations" or

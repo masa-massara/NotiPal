@@ -1,8 +1,12 @@
 // Removed: import { fetchApiClient } from "../lib/apiClient";
-import type {
-	NotionDatabase,
-	NotionProperty,
-} from "../types/notionIntegration"; // Added NotionProperty
+// MEMO: NotionDatabase, NotionPropertyは一時的な型定義（本来は共通パッケージに移すべき）
+type NotionDatabase = { id: string; name: string };
+type NotionProperty = {
+	id: string;
+	name: string;
+	type: string;
+	options?: { id: string; name: string; color?: string }[];
+};
 
 // Define a type for the API client methods expected by the service
 export interface ApiClientMethods {
@@ -71,3 +75,7 @@ export async function getNotionDatabaseProperties(
 	const data = await response.json();
 	return data as NotionProperty[];
 }
+
+// MEMO: NotionDatabase, NotionPropertyのzodスキーマが@notipal/commonに未定義のため、
+// 現状はAPIレスポンスの型安全なzodバリデーションは未対応。
+// 共通スキーマ追加後にapiResponseSchemaでの検証を推奨。

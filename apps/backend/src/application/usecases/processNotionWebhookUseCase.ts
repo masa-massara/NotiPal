@@ -1,4 +1,4 @@
-import type { Template } from "../../domain/entities/template";
+import type { Template } from "@notipal/common";
 import type { DestinationRepository } from "../../domain/repositories/destinationRepository";
 // src/application/usecases/processNotionWebhookUseCase.ts
 import type { TemplateRepository } from "../../domain/repositories/templateRepository";
@@ -38,18 +38,26 @@ export interface ProcessNotionWebhookInput {
 	[key: string]: any;
 }
 
-export class ProcessNotionWebhookUseCase {
-	constructor(
-		private readonly templateRepository: TemplateRepository,
-		private readonly destinationRepository: DestinationRepository,
-		private readonly notionApiService: NotionApiService,
-		private readonly messageFormatterService: MessageFormatterService,
-		private readonly notificationClient: NotificationClient,
-		private readonly userNotionIntegrationRepository: UserNotionIntegrationRepository, // Added
-		private readonly encryptionService: EncryptionService, // Added
-	) {}
+export const createProcessNotionWebhookUseCase = (deps: {
+	templateRepository: TemplateRepository;
+	destinationRepository: DestinationRepository;
+	notionApiService: NotionApiService;
+	messageFormatterService: MessageFormatterService;
+	notificationClient: NotificationClient;
+	userNotionIntegrationRepository: UserNotionIntegrationRepository;
+	encryptionService: EncryptionService;
+}) => {
+	return async (input: ProcessNotionWebhookInput): Promise<void> => {
+		const {
+			templateRepository,
+			destinationRepository,
+			notionApiService,
+			messageFormatterService,
+			notificationClient,
+			userNotionIntegrationRepository,
+			encryptionService,
+		} = deps;
 
-	async execute(input: ProcessNotionWebhookInput): Promise<void> {
 		console.log("ProcessNotionWebhookUseCase: Received webhook input");
 
 		const notionData = input.data;
@@ -87,7 +95,7 @@ export class ProcessNotionWebhookUseCase {
 			`ProcessNotionWebhookUseCase: Fetching all templates for databaseId: ${databaseId}.`,
 		);
 		const templates: Template[] =
-			await this.templateRepository.findAllByNotionDatabaseId(databaseId);
+			await templateRepository.findAllByNotionDatabaseId(databaseId);
 
 		if (templates.length === 0) {
 			console.log(
@@ -113,7 +121,7 @@ export class ProcessNotionWebhookUseCase {
 			// biome-ignore lint/suspicious/noImplicitAnyLet: <explanation>
 			let userIntegration;
 			try {
-				userIntegration = await this.userNotionIntegrationRepository.findById(
+				userIntegration = await userNotionIntegrationRepository.findById(
 					template.userNotionIntegrationId,
 					template.userId,
 				);
@@ -134,7 +142,7 @@ export class ProcessNotionWebhookUseCase {
 
 			let decryptedToken: string;
 			try {
-				decryptedToken = await this.encryptionService.decrypt(
+				decryptedToken = await encryptionService.decrypt(
 					userIntegration.notionIntegrationToken,
 				);
 			} catch (decryptionError) {
@@ -151,7 +159,7 @@ export class ProcessNotionWebhookUseCase {
 					`ProcessNotionWebhookUseCase: Attempting to fetch schema for databaseId ${databaseId} using token from UserNotionIntegration ID ${userIntegration.id} (Template ID ${template.id}).`,
 				);
 				try {
-					databaseSchema = await this.notionApiService.getDatabaseSchema(
+					databaseSchema = await notionApiService.getDatabaseSchema(
 						databaseId,
 						decryptedToken,
 					);
@@ -211,7 +219,7 @@ export class ProcessNotionWebhookUseCase {
 
 		for (const template of matchedTemplates) {
 			try {
-				const formattedBody = await this.messageFormatterService.format(
+				const formattedBody = await messageFormatterService.format(
 					template.body,
 					pageProperties || {},
 					databaseSchema,
@@ -244,7 +252,7 @@ export class ProcessNotionWebhookUseCase {
 		for (const messageInfo of messagesToSend) {
 			try {
 				// ★★★ 修正点2: destinationRepository.findById に templateUserId を渡す ★★★
-				const destination = await this.destinationRepository.findById(
+				const destination = await destinationRepository.findById(
 					messageInfo.destinationId,
 					messageInfo.templateUserId, // 送信先は、テンプレートの所有者のものを取得
 				);
@@ -259,7 +267,7 @@ export class ProcessNotionWebhookUseCase {
 					content: messageInfo.body,
 				};
 
-				await this.notificationClient.send(destination.webhookUrl, payload);
+				await notificationClient.send(destination.webhookUrl, payload);
 				// 成功ログは現状維持
 			} catch (sendError) {
 				console.error(
@@ -271,5 +279,5 @@ export class ProcessNotionWebhookUseCase {
 		console.log(
 			"ProcessNotionWebhookUseCase: All notification attempts finished.",
 		);
-	}
-}
+	};
+};

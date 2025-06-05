@@ -4,7 +4,7 @@ import {
 	getUserNotionIntegrations,
 } from "@/services/userNotionIntegrationService";
 import { currentUserAtom, idTokenAtom } from "@/store/globalAtoms"; // idTokenAtom をインポート
-import type { NotionIntegration } from "@/types/notionIntegration";
+import type { UserNotionIntegration as NotionIntegration } from "@notipal/common";
 import type { QueryClient } from "@tanstack/react-query";
 import { atom } from "jotai";
 import {

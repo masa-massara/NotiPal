@@ -8,6 +8,7 @@
 		"check": "bun biome check --write ./src"
 	},
 	"dependencies": {
+		"@notipal/common": "workspace:*",
 		"@notionhq/client": "^3.1.1",
 		"date-fns": "^4.1.0",
 		"firebase": "^11.8.1",

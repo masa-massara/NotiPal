@@ -1,276 +1,174 @@
+import {
+	type CreateTemplateApiInput,
+	ErrorCode,
+	type Template,
+	type UpdateTemplateApiInput,
+	createTemplateApiSchema,
+	updateTemplateApiSchema,
+} from "@notipal/common";
 // src/presentation/handlers/templateHandler.ts
-import type { Context } from "hono";
-import type {
-	CreateTemplateInput,
-	CreateTemplateOutput,
-	CreateTemplateUseCase,
-} from "../../application/usecases/createTemplateUseCase";
+import type { Context, TypedResponse } from "hono";
+import { respondError, respondSuccess } from "../utils/apiResponder";
 
-import type {
-	GetTemplateInput,
-	GetTemplateOutput,
-	GetTemplateUseCase,
-} from "../../application/usecases/getTemplateUseCase";
-
-import type {
-	ListTemplatesInput, // ★ ListTemplatesInput をインポート
-	ListTemplatesOutput,
-	ListTemplatesUseCase,
-} from "../../application/usecases/listTemplatesUseCase";
-
-import type {
-	UpdateTemplateInput,
-	UpdateTemplateOutput,
-	UpdateTemplateUseCase,
-} from "../../application/usecases/updateTemplateUseCase";
-
-import type {
-	DeleteTemplateInput,
-	DeleteTemplateUseCase,
-} from "../../application/usecases/deleteTemplateUseCase";
-
-export const createTemplateHandlerFactory = (
-	createTemplateUseCase: CreateTemplateUseCase,
-) => {
-	return async (c: Context): Promise<Response> => {
+// --- createTemplateHandler用の型定義 ---
+type CreateTemplateUseCaseFn = (
+	input: CreateTemplateApiInput & { userId: string },
+) => Promise<Template>;
+type CreateTemplateHandlerContext = Context<{
+	Variables: { userId: string };
+	in: { json: CreateTemplateApiInput };
+}>;
+export const createTemplateHandler =
+	(createUseCase: CreateTemplateUseCaseFn) =>
+	async (c: CreateTemplateHandlerContext): Promise<TypedResponse> => {
 		try {
-			const userId = c.get("userId") as string | undefined;
-			if (!userId) {
-				console.error(
-					"Error in createTemplateHandler: userId not found in context.",
-				);
-				return c.json(
-					{ error: "Unauthorized", message: "User ID not found." },
-					401,
-				);
-			}
+			const userId = c.get("userId");
+			const validatedBody = await c.req.json();
 
-			const bodyWithoutUserId =
-				await c.req.json<Omit<CreateTemplateInput, "userId">>();
-
-			if (
-				!bodyWithoutUserId.name ||
-				!bodyWithoutUserId.notionDatabaseId ||
-				!bodyWithoutUserId.body ||
-				!bodyWithoutUserId.conditions ||
-				!bodyWithoutUserId.destinationId
-			) {
-				return c.json({ error: "Missing required fields" }, 400);
-			}
-
-			const input: CreateTemplateInput = {
-				...bodyWithoutUserId,
-				userId: userId,
-			};
-
-			const result: CreateTemplateOutput =
-				await createTemplateUseCase.execute(input);
-
-			return c.json(result, 201);
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		} catch (error: any) {
-			console.error("Error in createTemplateHandler:", error);
-			if (error.message.includes("cannot be empty")) {
-				return c.json(
-					{ error: "Validation failed", details: error.message },
-					400,
-				);
-			}
-			if (error.message.includes("not found or not accessible")) {
-				return c.json(
-					{ error: "Forbidden or Not Found", details: error.message },
-					403,
-				);
-			}
-			return c.json(
-				{ error: "Failed to create template", details: error.message },
-				500,
+			const result = await createUseCase({ ...validatedBody, userId });
+			return respondSuccess(c, result, "Template created successfully.", 201);
+		} catch (error: unknown) {
+			const err = error as { message?: string };
+			return respondError(
+				c,
+				ErrorCode.INTERNAL_SERVER_ERROR,
+				undefined,
+				err.message,
 			);
 		}
 	};
-};
 
-export const getTemplateByIdHandlerFactory = (
-	getTemplateUseCase: GetTemplateUseCase,
-) => {
-	return async (c: Context): Promise<Response> => {
+// --- getTemplateByIdHandler用の型定義 ---
+type GetTemplateContext = Context<{
+	Variables: { userId: string };
+}>;
+type GetTemplateUseCaseFn = (input: {
+	id: string;
+	userId: string;
+}) => Promise<Template | null>;
+export const getTemplateByIdHandler =
+	(getUseCase: GetTemplateUseCaseFn) =>
+	async (c: GetTemplateContext): Promise<TypedResponse> => {
 		try {
-			const userId = c.get("userId") as string | undefined;
-			if (!userId) {
-				console.error(
-					"Error in getTemplateByIdHandler: userId not found in context.",
-				);
-				return c.json(
-					{ error: "Unauthorized", message: "User ID not found." },
-					401,
-				);
-			}
-
+			const userId = c.get("userId");
 			const id = c.req.param("id");
-			if (!id) {
-				return c.json({ error: "Template ID is required" }, 400);
-			}
-
-			const input: GetTemplateInput = { id, userId: userId };
-			const result: GetTemplateOutput = await getTemplateUseCase.execute(input);
-
-			if (!result) {
-				return c.json({ error: "Template not found" }, 404);
-			}
-
-			return c.json(result, 200);
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		} catch (error: any) {
-			console.error("Error in getTemplateByIdHandler:", error);
-			if (error.message.includes("not found or not accessible")) {
-				return c.json(
-					{ error: "Forbidden or Not Found", details: error.message },
-					403,
+			if (!id)
+				return respondError(
+					c,
+					ErrorCode.VALIDATION_ERROR,
+					undefined,
+					"Template ID is required",
 				);
-			}
-			return c.json(
-				{ error: "Failed to get template", details: error.message },
-				500,
+			const result = await getUseCase({ id, userId });
+			if (!result)
+				return respondError(
+					c,
+					ErrorCode.NOT_FOUND,
+					undefined,
+					"Template not found",
+				);
+			return respondSuccess(c, result);
+		} catch (error: unknown) {
+			const err = error as { message?: string };
+			return respondError(
+				c,
+				ErrorCode.INTERNAL_SERVER_ERROR,
+				undefined,
+				err.message,
 			);
 		}
 	};
-};
 
-// ★★★ listTemplatesHandlerFactory の実装 ★★★
-export const listTemplatesHandlerFactory = (
-	listTemplatesUseCase: ListTemplatesUseCase,
-) => {
-	return async (c: Context): Promise<Response> => {
+// --- listTemplatesHandler用の型定義 ---
+type ListTemplatesContext = Context<{
+	Variables: { userId: string };
+}>;
+type ListTemplatesUseCaseFn = (input: { userId: string }) => Promise<
+	Template[]
+>;
+export const listTemplatesHandler =
+	(listUseCase: ListTemplatesUseCaseFn) =>
+	async (c: ListTemplatesContext): Promise<TypedResponse> => {
 		try {
-			const userId = c.get("userId") as string | undefined;
-			if (!userId) {
-				console.error(
-					"Error in listTemplatesHandler: userId not found in context.",
-				);
-				return c.json(
-					{ error: "Unauthorized", message: "User ID not found." },
-					401,
-				);
-			}
-
-			const input: ListTemplatesInput = { userId: userId };
-			console.log(
-				`Handler: Calling ListTemplatesUseCase for user ${userId}...`,
-			);
-			const result: ListTemplatesOutput =
-				await listTemplatesUseCase.execute(input);
-			console.log(
-				`Handler: ListTemplatesUseCase returned ${result.length} templates for user ${userId}.`,
-			);
-			return c.json(result, 200);
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		} catch (error: any) {
-			console.error("Error in listTemplatesHandler:", error);
-			return c.json(
-				{ error: "Failed to list templates", details: error.message },
-				500,
+			const userId = c.get("userId");
+			const result = await listUseCase({ userId });
+			return respondSuccess(c, result);
+		} catch (error: unknown) {
+			const err = error as { message?: string };
+			return respondError(
+				c,
+				ErrorCode.INTERNAL_SERVER_ERROR,
+				undefined,
+				err.message,
 			);
 		}
 	};
-};
 
-// ★★★ updateTemplateHandlerFactory の実装 ★★★
-export const updateTemplateHandlerFactory = (
-	updateTemplateUseCase: UpdateTemplateUseCase,
-) => {
-	return async (c: Context): Promise<Response> => {
+// --- updateTemplateHandler用の型定義 ---
+type UpdateTemplateUseCaseFn = (
+	input: UpdateTemplateApiInput & { id: string; userId: string },
+) => Promise<Template>;
+type UpdateTemplateHandlerContext = Context<{
+	Variables: { userId: string };
+	in: { json: UpdateTemplateApiInput };
+}>;
+export const updateTemplateHandler =
+	(updateUseCase: UpdateTemplateUseCaseFn) =>
+	async (c: UpdateTemplateHandlerContext): Promise<TypedResponse> => {
 		try {
-			const userId = c.get("userId") as string | undefined;
-			if (!userId) {
-				console.error(
-					"Error in updateTemplateHandler: userId not found in context.",
-				);
-				return c.json(
-					{ error: "Unauthorized", message: "User ID not found." },
-					401,
-				);
-			}
-
+			const userId = c.get("userId");
 			const id = c.req.param("id");
-			if (!id) {
-				return c.json({ error: "Template ID is required in path" }, 400);
-			}
-
-			const bodyWithoutUserId =
-				await c.req.json<Omit<UpdateTemplateInput, "id" | "userId">>();
-
-			if (Object.keys(bodyWithoutUserId).length === 0) {
-				return c.json(
-					{ error: "Request body cannot be empty for update" },
-					400,
+			if (!id)
+				return respondError(
+					c,
+					ErrorCode.VALIDATION_ERROR,
+					undefined,
+					"Template ID is required",
 				);
-			}
-
-			const input: UpdateTemplateInput = {
-				id,
-				...bodyWithoutUserId,
-				userId: userId,
-			};
-			const result: UpdateTemplateOutput =
-				await updateTemplateUseCase.execute(input);
-
-			return c.json(result, 200);
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		} catch (error: any) {
-			console.error("Error in updateTemplateHandler:", error);
-			if (error.message.includes("not found or not accessible")) {
-				return c.json({ error: "Template not found or not accessible" }, 404); // 403 or 404
-			}
-			if (error.message.includes("cannot be empty")) {
-				return c.json(
-					{ error: "Validation failed", details: error.message },
-					400,
-				);
-			}
-			return c.json(
-				{ error: "Failed to update template", details: error.message },
-				500,
+			const validatedBody = c.req.json();
+			const result = await updateUseCase({ ...validatedBody, id, userId });
+			return respondSuccess(c, result, "Template updated successfully.");
+		} catch (error: unknown) {
+			const err = error as { message?: string };
+			return respondError(
+				c,
+				ErrorCode.INTERNAL_SERVER_ERROR,
+				undefined,
+				err.message,
 			);
 		}
 	};
-};
 
-// ★★★ deleteTemplateHandlerFactory の実装 ★★★
-export const deleteTemplateHandlerFactory = (
-	deleteTemplateUseCase: DeleteTemplateUseCase,
-) => {
-	return async (c: Context): Promise<Response> => {
+// --- deleteTemplateHandler用の型定義 ---
+type DeleteTemplateContext = Context<{
+	Variables: { userId: string };
+}>;
+type DeleteTemplateUseCaseFn = (input: {
+	id: string;
+	userId: string;
+}) => Promise<void>;
+export const deleteTemplateHandler =
+	(deleteUseCase: DeleteTemplateUseCaseFn) =>
+	async (c: DeleteTemplateContext): Promise<TypedResponse> => {
 		try {
-			const userId = c.get("userId") as string | undefined;
-			if (!userId) {
-				console.error(
-					"Error in deleteTemplateHandler: userId not found in context.",
-				);
-				return c.json(
-					{ error: "Unauthorized", message: "User ID not found." },
-					401,
-				);
-			}
-
+			const userId = c.get("userId");
 			const id = c.req.param("id");
-			if (!id) {
-				return c.json({ error: "Template ID is required in path" }, 400);
-			}
-
-			const input: DeleteTemplateInput = { id, userId: userId };
-			await deleteTemplateUseCase.execute(input);
-
-			return c.body(null, 204); // 204 No Content
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		} catch (error: any) {
-			console.error("Error in deleteTemplateHandler:", error);
-			if (error.message.includes("not found or not accessible")) {
-				return c.json({ error: "Template not found or not accessible" }, 404); // 403 or 404
-			}
-			return c.json(
-				{ error: "Failed to delete template", details: error.message },
-				500,
+			if (!id)
+				return respondError(
+					c,
+					ErrorCode.VALIDATION_ERROR,
+					undefined,
+					"Template ID is required",
+				);
+			await deleteUseCase({ id, userId });
+			return respondSuccess(c, null, "Template deleted successfully.", 204);
+		} catch (error: unknown) {
+			const err = error as { message?: string };
+			return respondError(
+				c,
+				ErrorCode.INTERNAL_SERVER_ERROR,
+				undefined,
+				err.message,
 			);
 		}
 	};
-};

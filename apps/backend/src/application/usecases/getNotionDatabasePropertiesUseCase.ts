@@ -16,17 +16,22 @@ import type { EncryptionService } from "../services/encryptionService";
 
 const CACHE_TTL_SECONDS_PROPERTIES = 1800; // 30 minutes, same as schema for consistency
 
-export class GetNotionDatabasePropertiesUseCase {
-	constructor(
-		private readonly userNotionIntegrationRepository: UserNotionIntegrationRepository,
-		private readonly encryptionService: EncryptionService,
-		private readonly notionApiService: NotionApiService,
-		private readonly cacheService: CacheService,
-	) {}
+export const createGetNotionDatabasePropertiesUseCase = (deps: {
+	userNotionIntegrationRepository: UserNotionIntegrationRepository;
+	encryptionService: EncryptionService;
+	notionApiService: NotionApiService;
+	cacheService: CacheService;
+}) => {
+	const {
+		userNotionIntegrationRepository,
+		encryptionService,
+		notionApiService,
+		cacheService,
+	} = deps;
 
-	async execute(
+	return async (
 		input: GetNotionDatabasePropertiesInput,
-	): Promise<GetNotionDatabasePropertiesOutput> {
+	): Promise<GetNotionDatabasePropertiesOutput> => {
 		const { databaseId, userId, integrationId } = input;
 
 		if (!integrationId) {
@@ -40,7 +45,7 @@ export class GetNotionDatabasePropertiesUseCase {
 		}
 
 		// 1. Fetch UserNotionIntegration
-		const integration = await this.userNotionIntegrationRepository.findById(
+		const integration = await userNotionIntegrationRepository.findById(
 			integrationId,
 			userId,
 		);
@@ -55,7 +60,7 @@ export class GetNotionDatabasePropertiesUseCase {
 		let decryptedToken: string;
 		try {
 			// Assuming the token property name is 'notionIntegrationToken' based on previous subtask report
-			decryptedToken = await this.encryptionService.decrypt(
+			decryptedToken = await encryptionService.decrypt(
 				integration.notionIntegrationToken,
 			);
 		} catch (error) {
@@ -73,7 +78,7 @@ export class GetNotionDatabasePropertiesUseCase {
 		const cacheKey = `notion_db_properties_${databaseId}_integ_${integrationId}`; // Include integrationId in cache key for safety, though token implies access
 
 		const cachedProperties =
-			await this.cacheService.get<GetNotionDatabasePropertiesOutput>(cacheKey);
+			await cacheService.get<GetNotionDatabasePropertiesOutput>(cacheKey);
 		if (cachedProperties) {
 			console.log(
 				`Cache hit for Notion database properties: ${databaseId} using integration ${integrationId}`,
@@ -87,7 +92,7 @@ export class GetNotionDatabasePropertiesUseCase {
 		// 4. Fetch Schema from NotionApiService
 		let notionSchema: NotionDatabaseSchema | null;
 		try {
-			notionSchema = await this.notionApiService.getDatabaseSchema(
+			notionSchema = await notionApiService.getDatabaseSchema(
 				databaseId,
 				decryptedToken,
 			);
@@ -133,7 +138,7 @@ export class GetNotionDatabasePropertiesUseCase {
 		});
 
 		// 6. Store in Cache
-		await this.cacheService.set(
+		await cacheService.set(
 			cacheKey,
 			outputProperties,
 			CACHE_TTL_SECONDS_PROPERTIES,
@@ -143,5 +148,5 @@ export class GetNotionDatabasePropertiesUseCase {
 		);
 
 		return outputProperties;
-	}
-}
+	};
+};
