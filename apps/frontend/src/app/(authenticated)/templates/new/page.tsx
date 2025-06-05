@@ -164,7 +164,10 @@ function NewTemplatePage() {
 		// console.log("【FE Log 5.2】Notionデータベース一覧ロード中 (isLoading):", isLoadingNotionDatabases);
 		// console.log("【FE Log 5.3】Notionデータベース一覧フェッチ中 (isFetching):", isFetchingNotionDatabases);
 		if (errorNotionDatabases) {
-			console.error("【FE Log 5.4】Notionデータベース一覧取得エラー (error):", errorNotionDatabases);
+			console.error(
+				"【FE Log 5.4】Notionデータベース一覧取得エラー (error):",
+				errorNotionDatabases,
+			);
 		}
 	}, [errorNotionDatabases]);
 
@@ -341,7 +344,8 @@ function NewTemplatePage() {
 												placeholder={
 													!selectedNotionIntegrationId
 														? "Select a Notion Integration first"
-														: isLoadingNotionDatabases || isFetchingNotionDatabases
+														: isLoadingNotionDatabases ||
+																isFetchingNotionDatabases
 															? "Loading databases..."
 															: "Select a Notion Database"
 												}
@@ -361,7 +365,8 @@ function NewTemplatePage() {
 												</SelectItem>
 											) : errorNotionDatabases ? (
 												<SelectItem value="error-db" disabled>
-													Error fetching databases: {errorNotionDatabases.message}
+													Error fetching databases:{" "}
+													{errorNotionDatabases.message}
 												</SelectItem>
 											) : !isLoadingNotionDatabases &&
 												notionDatabases &&

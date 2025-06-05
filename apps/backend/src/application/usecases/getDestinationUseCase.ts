@@ -1,37 +1,24 @@
 // src/application/usecases/getDestinationUseCase.ts
-import type { Destination } from "../../domain/entities/destination";
+import type { Destination as DestinationData } from "@notipal/common";
 import type { DestinationRepository } from "../../domain/repositories/destinationRepository";
 
 export interface GetDestinationInput {
 	id: string;
-	userId: string; // ★★★ Input DTOにuserIdを追加 ★★★
+	userId: string;
 }
 
-export type GetDestinationOutput = Destination | null;
+export type GetDestinationOutput = DestinationData | null;
 
-export class GetDestinationUseCase {
-	constructor(private readonly destinationRepository: DestinationRepository) {}
+export const createGetDestinationUseCase = (dependencies: {
+	destinationRepository: DestinationRepository;
+}) => {
+	const { destinationRepository } = dependencies;
 
-	async execute(input: GetDestinationInput): Promise<GetDestinationOutput> {
-		console.log(
-			`GetDestinationUseCase: Attempting to find destination with ID: ${input.id} for user ${input.userId}`, // ★ ログにuserIdを追加
-		);
-		// ★★★ リポジトリのfindByIdメソッドにuserIdを渡す ★★★
-		const destination = await this.destinationRepository.findById(
+	return async (input: GetDestinationInput): Promise<GetDestinationOutput> => {
+		const destination = await destinationRepository.findById(
 			input.id,
 			input.userId,
 		);
-
-		if (!destination) {
-			console.log(
-				`GetDestinationUseCase: Destination with ID ${input.id} not found for user ${input.userId}.`, // ★ ログにuserIdを追加
-			);
-			return null;
-		}
-		console.log(
-			`GetDestinationUseCase: Found destination for user ${input.userId}:`,
-			destination,
-		); // ★ ログにuserIdを追加
 		return destination;
-	}
-}
+	};
+};

@@ -16,31 +16,31 @@ import type { NotificationClient } from "./domain/services/notificationClient";
 import type { NotionApiService } from "./domain/services/notionApiService";
 
 // --- Application層 (UseCases & Services) のインポート ---
-import { CreateTemplateUseCase } from "./application/usecases/createTemplateUseCase";
-import { DeleteTemplateUseCase } from "./application/usecases/deleteTemplateUseCase";
-import { GetTemplateUseCase } from "./application/usecases/getTemplateUseCase";
-import { ListTemplatesUseCase } from "./application/usecases/listTemplatesUseCase";
-import { UpdateTemplateUseCase } from "./application/usecases/updateTemplateUseCase";
+import { createCreateTemplateUseCase } from "./application/usecases/createTemplateUseCase";
+import { createDeleteTemplateUseCase } from "./application/usecases/deleteTemplateUseCase";
+import { createGetTemplateUseCase } from "./application/usecases/getTemplateUseCase";
+import { createListTemplatesUseCase } from "./application/usecases/listTemplatesUseCase";
+import { createUpdateTemplateUseCase } from "./application/usecases/updateTemplateUseCase";
 
-import { CreateDestinationUseCase } from "./application/usecases/createDestinationUseCase";
-import { DeleteDestinationUseCase } from "./application/usecases/deleteDestinationUseCase";
-import { GetDestinationUseCase } from "./application/usecases/getDestinationUseCase";
-import { ListDestinationsUseCase } from "./application/usecases/listDestinationsUseCase";
-import { UpdateDestinationUseCase } from "./application/usecases/updateDestinationUseCase";
+import { createCreateDestinationUseCase } from "./application/usecases/createDestinationUseCase";
+import { createDeleteDestinationUseCase } from "./application/usecases/deleteDestinationUseCase";
+import { createGetDestinationUseCase } from "./application/usecases/getDestinationUseCase";
+import { createListDestinationsUseCase } from "./application/usecases/listDestinationsUseCase";
+import { createUpdateDestinationUseCase } from "./application/usecases/updateDestinationUseCase";
 
-import { CreateUserNotionIntegrationUseCase } from "./application/usecases/createUserNotionIntegrationUseCase";
-import { DeleteUserNotionIntegrationUseCase } from "./application/usecases/deleteUserNotionIntegrationUseCase";
-import { GetNotionDatabasePropertiesUseCase } from "./application/usecases/getNotionDatabasePropertiesUseCase";
-import { ListNotionDatabasesUseCase } from "./application/usecases/listNotionDatabasesUseCase";
-import { ListUserNotionIntegrationsUseCase } from "./application/usecases/listUserNotionIntegrationsUseCase";
+import { createUserNotionIntegrationUseCase } from "./application/usecases/createUserNotionIntegrationUseCase";
+import { deleteUserNotionIntegrationUseCase } from "./application/usecases/deleteUserNotionIntegrationUseCase";
+import { listUserNotionIntegrationsUseCase } from "./application/usecases/listUserNotionIntegrationsUseCase";
+
+import { createGetNotionDatabasePropertiesUseCase } from "./application/usecases/getNotionDatabasePropertiesUseCase";
+import { createListNotionDatabasesUseCase } from "./application/usecases/listNotionDatabasesUseCase";
 
 import { MessageFormatterServiceImpl } from "./application/services/messageFormatterServiceImpl";
-import { ProcessNotionWebhookUseCase } from "./application/usecases/processNotionWebhookUseCase";
+import { createProcessNotionWebhookUseCase } from "./application/usecases/processNotionWebhookUseCase";
 
-import { FirestoreDestinationRepository } from "./infrastructure/persistence/firestore/firestoreDestinationRepository";
-// --- Infrastructure層 (具体的な実装) のインポート ---
-import { FirestoreTemplateRepository } from "./infrastructure/persistence/firestore/firestoreTemplateRepository";
-import { FirestoreUserNotionIntegrationRepository } from "./infrastructure/persistence/firestore/firestoreUserNotionIntegrationRepository";
+import { createFirestoreDestinationRepository } from "./infrastructure/persistence/firestore/firestoreDestinationRepository";
+import { createFirestoreTemplateRepository } from "./infrastructure/persistence/firestore/firestoreTemplateRepository";
+import { createFirestoreUserNotionIntegrationRepository } from "./infrastructure/persistence/firestore/firestoreUserNotionIntegrationRepository";
 import { InMemoryCacheService } from "./infrastructure/persistence/inMemory/inMemoryCacheService";
 import { NodeCryptoEncryptionService } from "./infrastructure/services/nodeCryptoEncryptionService";
 import { HttpNotificationClient } from "./infrastructure/web-clients/httpNotificationClient";
@@ -55,19 +55,27 @@ import {
 } from "./presentation/handlers/destinationHandler";
 import { getNotionDatabasePropertiesHandlerFactory } from "./presentation/handlers/notionDatabaseHandler";
 import { notionWebhookHandlerFactory } from "./presentation/handlers/notionWebhookHandler";
-// --- Presentation層 (Handlers) のインポート ---
 import {
-	createTemplateHandlerFactory,
-	deleteTemplateHandlerFactory,
-	getTemplateByIdHandlerFactory,
-	listTemplatesHandlerFactory,
-	updateTemplateHandlerFactory,
+	createTemplateHandler,
+	deleteTemplateHandler,
+	getTemplateByIdHandler,
+	listTemplatesHandler,
+	updateTemplateHandler,
 } from "./presentation/handlers/templateHandler";
 import { createUserNotionIntegrationHandlers } from "./presentation/handlers/userNotionIntegrationHandler";
 
 import { authMiddleware } from "./presentation/middleware/authMiddleware";
 
 import "hono";
+import { zValidator } from "@hono/zod-validator";
+import {
+	createTemplateApiSchema,
+	updateTemplateApiSchema,
+} from "@notipal/common";
+import {
+	createDestinationApiSchema,
+	updateDestinationApiSchema,
+} from "@notipal/common";
 import { cors } from "hono/cors";
 
 declare module "hono" {
@@ -194,10 +202,10 @@ try {
 		);
 	}
 	const firestoreInstance = getFirestore(); // SDK初期化後に呼び出す
-	templateRepository = new FirestoreTemplateRepository(); // FirestoreRepositoryは内部でgetFirestore()を呼ぶので、SDK初期化後ならOK
-	destinationRepository = new FirestoreDestinationRepository();
+	templateRepository = createFirestoreTemplateRepository();
+	destinationRepository = createFirestoreDestinationRepository();
 	userNotionIntegrationRepository =
-		new FirestoreUserNotionIntegrationRepository(firestoreInstance); // 明示的にインスタンスを渡す
+		createFirestoreUserNotionIntegrationRepository();
 	persistenceTypeMessage = "Persistence: Firestore (NotiPal)";
 	// console.log("Firestore repositories initialized successfully for NotiPal.");
 } catch (error) {
@@ -212,62 +220,70 @@ try {
 }
 
 // --- ユースケースのインスタンス化 ---
-const createTemplateUseCase = new CreateTemplateUseCase(
+const createTemplateUseCase = createCreateTemplateUseCase({
 	templateRepository,
 	userNotionIntegrationRepository,
 	notionApiService,
 	encryptionService,
-);
-const getTemplateUseCase = new GetTemplateUseCase(templateRepository);
-const listTemplatesUseCase = new ListTemplatesUseCase(templateRepository);
-const updateTemplateUseCase = new UpdateTemplateUseCase(
+});
+const getTemplateUseCase = createGetTemplateUseCase({ templateRepository });
+const listTemplatesUseCase = createListTemplatesUseCase({ templateRepository });
+const updateTemplateUseCase = createUpdateTemplateUseCase({
 	templateRepository,
 	userNotionIntegrationRepository,
 	notionApiService,
 	encryptionService,
-);
-const deleteTemplateUseCase = new DeleteTemplateUseCase(templateRepository);
+});
+const deleteTemplateUseCase = createDeleteTemplateUseCase({
+	templateRepository,
+});
 
-const createDestinationUseCase = new CreateDestinationUseCase(
+const createDestinationUseCase = createCreateDestinationUseCase({
 	destinationRepository,
-);
-const getDestinationUseCase = new GetDestinationUseCase(destinationRepository);
-const listDestinationsUseCase = new ListDestinationsUseCase(
+});
+const deleteDestinationUseCase = createDeleteDestinationUseCase({
 	destinationRepository,
-);
-const updateDestinationUseCase = new UpdateDestinationUseCase(
+});
+const getDestinationUseCase = createGetDestinationUseCase({
 	destinationRepository,
-);
-const deleteDestinationUseCase = new DeleteDestinationUseCase(
+});
+const listDestinationsUseCase = createListDestinationsUseCase({
 	destinationRepository,
-);
+});
+const updateDestinationUseCase = createUpdateDestinationUseCase({
+	destinationRepository,
+});
 
-const createUserNotionIntegrationUseCase =
-	new CreateUserNotionIntegrationUseCase(
+const createUserNotionIntegrationUseCaseFn = createUserNotionIntegrationUseCase(
+	{
 		userNotionIntegrationRepository,
 		encryptionService,
-	);
-const listUserNotionIntegrationsUseCase = new ListUserNotionIntegrationsUseCase(
-	userNotionIntegrationRepository,
+	},
 );
-const deleteUserNotionIntegrationUseCase =
-	new DeleteUserNotionIntegrationUseCase(userNotionIntegrationRepository);
+const listUserNotionIntegrationsUseCaseFn = listUserNotionIntegrationsUseCase({
+	userNotionIntegrationRepository,
+});
+const deleteUserNotionIntegrationUseCaseFn = deleteUserNotionIntegrationUseCase(
+	{
+		userNotionIntegrationRepository,
+	},
+);
 
-const listNotionDatabasesUseCase = new ListNotionDatabasesUseCase(
+const listNotionDatabasesUseCase = createListNotionDatabasesUseCase({
 	userNotionIntegrationRepository,
 	encryptionService,
 	notionApiService,
-);
+});
 
 const getNotionDatabasePropertiesUseCase =
-	new GetNotionDatabasePropertiesUseCase(
+	createGetNotionDatabasePropertiesUseCase({
 		userNotionIntegrationRepository,
 		encryptionService,
 		notionApiService,
 		cacheService,
-	);
+	});
 
-const processNotionWebhookUseCase = new ProcessNotionWebhookUseCase(
+const processNotionWebhookUseCase = createProcessNotionWebhookUseCase({
 	templateRepository,
 	destinationRepository,
 	notionApiService,
@@ -275,40 +291,29 @@ const processNotionWebhookUseCase = new ProcessNotionWebhookUseCase(
 	notificationClient,
 	userNotionIntegrationRepository,
 	encryptionService,
-);
+});
 
 // --- ルーティング定義 ---
-const apiV1 = new Hono<{ Variables: { userId: string } }>();
-apiV1.use("*", authMiddleware);
+const apiV1 = app.basePath("/api/v1");
 
-// Template API
-apiV1.post("/templates", createTemplateHandlerFactory(createTemplateUseCase));
-apiV1.get("/templates/:id", getTemplateByIdHandlerFactory(getTemplateUseCase));
-apiV1.get("/templates", listTemplatesHandlerFactory(listTemplatesUseCase));
-apiV1.put(
-	"/templates/:id",
-	updateTemplateHandlerFactory(updateTemplateUseCase),
-);
-apiV1.delete(
-	"/templates/:id",
-	deleteTemplateHandlerFactory(deleteTemplateUseCase),
-);
+apiV1.use("/destinations*", authMiddleware);
 
-// Destination API
 apiV1.post(
 	"/destinations",
+	zValidator("json", createDestinationApiSchema),
 	createDestinationHandlerFactory(createDestinationUseCase),
-);
-apiV1.get(
-	"/destinations/:id",
-	getDestinationByIdHandlerFactory(getDestinationUseCase),
 );
 apiV1.get(
 	"/destinations",
 	listDestinationsHandlerFactory(listDestinationsUseCase),
 );
+apiV1.get(
+	"/destinations/:id",
+	getDestinationByIdHandlerFactory(getDestinationUseCase),
+);
 apiV1.put(
 	"/destinations/:id",
+	zValidator("json", updateDestinationApiSchema),
 	updateDestinationHandlerFactory(updateDestinationUseCase),
 );
 apiV1.delete(
@@ -316,11 +321,26 @@ apiV1.delete(
 	deleteDestinationHandlerFactory(deleteDestinationUseCase),
 );
 
+// Template API
+apiV1.post(
+	"/templates",
+	zValidator("json", createTemplateApiSchema),
+	createTemplateHandler(createTemplateUseCase),
+);
+apiV1.get("/templates/:id", getTemplateByIdHandler(getTemplateUseCase));
+apiV1.get("/templates", listTemplatesHandler(listTemplatesUseCase));
+apiV1.put(
+	"/templates/:id",
+	zValidator("json", updateTemplateApiSchema),
+	updateTemplateHandler(updateTemplateUseCase),
+);
+apiV1.delete("/templates/:id", deleteTemplateHandler(deleteTemplateUseCase));
+
 // User Notion Integration API
 const userNotionIntegrationHandlers = createUserNotionIntegrationHandlers(
-	createUserNotionIntegrationUseCase,
-	listUserNotionIntegrationsUseCase,
-	deleteUserNotionIntegrationUseCase,
+	createUserNotionIntegrationUseCaseFn,
+	listUserNotionIntegrationsUseCaseFn,
+	deleteUserNotionIntegrationUseCaseFn,
 	listNotionDatabasesUseCase,
 );
 
@@ -350,8 +370,6 @@ apiV1.get(
 	"/notion-databases/:databaseId/properties",
 	getNotionDatabasePropertiesHandler,
 );
-
-app.route("/api/v1", apiV1);
 
 // Webhook Endpoint
 app.post(

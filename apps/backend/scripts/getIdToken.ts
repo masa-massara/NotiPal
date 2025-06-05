@@ -79,6 +79,7 @@ async function main() {
 			console.error("Failed to get user object after sign in.");
 			process.exit(1);
 		}
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	} catch (error: any) {
 		let errorMessage = `Authentication failed for user ${email}: `;
 		if (error.message) errorMessage += error.message;

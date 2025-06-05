@@ -2,6 +2,7 @@
 import { Client } from "@notionhq/client";
 import type {
 	DatabaseObjectResponse,
+	RichTextItemResponse,
 	SearchResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import type { CacheService } from "../../application/services/cacheService"; // ★ CacheService をインポート
@@ -77,17 +78,24 @@ export class NotionApiClient implements NotionApiService {
 				);
 			}
 			return schema;
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		} catch (error: any) {
+		} catch (error: unknown) {
+			const err = error as {
+				code?: string;
+				name?: string;
+				message?: string;
+				body?: string;
+				status?: number;
+			};
 			console.error(
 				`NotionApiClient: Error fetching database schema for ID ${databaseId}:`,
-				error.code || error.name,
-				error.body || error.message,
+				err.code || err.name,
+				err.message,
+				err.body ? `Body: ${err.body}` : "",
 			);
-			if (error.code === "object_not_found" || error.status === 404) {
+			if (err.code === "object_not_found" || err.status === 404) {
 				return null;
 			}
-			throw error;
+			throw err;
 		}
 	}
 
@@ -97,9 +105,7 @@ export class NotionApiClient implements NotionApiService {
 	): NotionDatabaseSchema {
 		const databaseTitle =
 			Array.isArray(response.title) && response.title.length > 0
-				? response.title
-						.map((t: { plain_text: string }) => t.plain_text)
-						.join("")
+				? response.title.map((t: RichTextItemResponse) => t.plain_text).join("")
 				: "Untitled Database";
 
 		const properties: Record<string, NotionPropertySchema> = {};
@@ -177,23 +183,35 @@ export class NotionApiClient implements NotionApiService {
 		try {
 			while (hasMore) {
 				// ログ 14: Notion API (search) 呼び出し直前
-				console.log(`【BE Log 14 at NotionClient】Calling notion.search with start_cursor: ${startCursor}`);
+				console.log(
+					`【BE Log 14 at NotionClient】Calling notion.search with start_cursor: ${startCursor}`,
+				);
 				const response: SearchResponse = await notion.search({
 					filter: { value: "database", property: "object" },
 					page_size: 100,
 					start_cursor: startCursor,
 				});
 				// ログ 15: Notion API (search) のレスポンス概要
-				console.log(`【BE Log 15 at NotionClient】notion.search response - has_more: ${response.has_more}, next_cursor: ${response.next_cursor}, results_count: ${response.results.length}`);
+				console.log(
+					`【BE Log 15 at NotionClient】notion.search response - has_more: ${response.has_more}, next_cursor: ${response.next_cursor}, results_count: ${response.results.length}`,
+				);
 				// console.log("【BE Log 15.1 at NotionClient】notion.search results (raw):", JSON.stringify(response.results, null, 2));
 
 				for (const dbResult of response.results) {
 					if (dbResult.object === "database" && "title" in dbResult) {
-						if (Array.isArray(dbResult.title) && dbResult.title.length > 0 && "plain_text" in dbResult.title[0]) {
-							const dbName = dbResult.title.map((t: any) => t.plain_text).join("");
+						if (
+							Array.isArray(dbResult.title) &&
+							dbResult.title.length > 0 &&
+							"plain_text" in dbResult.title[0]
+						) {
+							const dbName = dbResult.title
+								.map((t: { plain_text: string }) => t.plain_text)
+								.join("");
 							databases.push({ id: dbResult.id, name: dbName });
 							// ログ 16.1: データベースとして認識・追加
-							console.log(`【BE Log 16.1 at NotionClient】Found database: ID=${dbResult.id}, Name=${dbName}`);
+							console.log(
+								`【BE Log 16.1 at NotionClient】Found database: ID=${dbResult.id}, Name=${dbName}`,
+							);
 						} else {
 							// タイトルが期待した形式でない場合
 							console.warn(
@@ -204,7 +222,7 @@ export class NotionApiClient implements NotionApiService {
 					} else {
 						// ログ 16.3: データベースオブジェクトではない、またはタイトルがない
 						console.warn(
-							`【BE Log 16.3 at NotionClient】Search result (ID: ${'id' in dbResult ? dbResult.id : 'N/A'}) is not a valid database object with title. Object type: ${dbResult.object}. Skipping.`,
+							`【BE Log 16.3 at NotionClient】Search result (ID: ${"id" in dbResult ? dbResult.id : "N/A"}) is not a valid database object with title. Object type: ${dbResult.object}. Skipping.`,
 						);
 					}
 				}
@@ -213,17 +231,24 @@ export class NotionApiClient implements NotionApiService {
 				startCursor = response.next_cursor || undefined;
 			}
 			// ログ 17: 最終的に見つかったデータベースの数
-			console.log(`【BE Log 17 at NotionClient】Finished fetching. Total accessible databases found: ${databases.length}`);
+			console.log(
+				`【BE Log 17 at NotionClient】Finished fetching. Total accessible databases found: ${databases.length}`,
+			);
 			return databases;
-		} catch (error: any) {
-			// ログ 18: API呼び出し中のエラー
+		} catch (error: unknown) {
+			const err = error as {
+				code?: string;
+				name?: string;
+				message?: string;
+				body?: string;
+			};
 			console.error(
 				"【BE Log 18 at NotionClient】Error listing accessible databases from Notion API:",
-				error.code || error.name,
-				error.message,
-				error.body ? `Body: ${error.body}` : ""
+				err.code || err.name,
+				err.message,
+				err.body ? `Body: ${err.body}` : "",
 			);
-			throw error;
+			throw err;
 		}
 	}
 }
