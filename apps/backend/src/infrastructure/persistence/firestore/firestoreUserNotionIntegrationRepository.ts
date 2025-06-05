@@ -1,83 +1,53 @@
-import type {
-	CollectionReference,
-	DocumentData,
-	Firestore,
-} from "@google-cloud/firestore";
-import { UserNotionIntegration } from "../../../domain/entities/userNotionIntegration";
+import type { CollectionReference, Firestore } from "@google-cloud/firestore";
+import {
+	type InternalUserNotionIntegration,
+	internalUserNotionIntegrationSchema,
+} from "@notipal/common";
+import { getFirestore } from "firebase-admin/firestore";
 import type { UserNotionIntegrationRepository } from "../../../domain/repositories/userNotionIntegrationRepository";
 
-export class FirestoreUserNotionIntegrationRepository
-	implements UserNotionIntegrationRepository
-{
-	private readonly collection: CollectionReference;
+const INTEGRATIONS_COLLECTION = "userNotionIntegrations";
 
-	constructor(firestore: Firestore) {
-		this.collection = firestore.collection("userNotionIntegrations");
-	}
-
-	async save(integration: UserNotionIntegration): Promise<void> {
-		const data = {
-			id: integration.id,
-			userId: integration.userId,
-			integrationName: integration.integrationName,
-			notionIntegrationToken: integration.notionIntegrationToken, // Stored encrypted
-			createdAt: integration.createdAt,
-			updatedAt: integration.updatedAt,
-		};
-		await this.collection.doc(integration.id).set(data);
-	}
-
-	async findById(
-		id: string,
-		userId: string,
-	): Promise<UserNotionIntegration | null> {
-		const doc = await this.collection.doc(id).get();
-		if (!doc.exists) {
-			return null;
-		}
-		const data = doc.data() as DocumentData;
-		if (data.userId !== userId) {
-			// Ensure the integration belongs to the user
-			return null;
-		}
-		return new UserNotionIntegration(
-			data.userId,
-			data.integrationName,
-			data.notionIntegrationToken,
-			data.id,
-			data.createdAt.toDate(),
-			data.updatedAt.toDate(),
+export const createFirestoreUserNotionIntegrationRepository =
+	(): UserNotionIntegrationRepository => {
+		const db: Firestore = getFirestore();
+		const collection: CollectionReference = db.collection(
+			INTEGRATIONS_COLLECTION,
 		);
-	}
 
-	async findAllByUserId(userId: string): Promise<UserNotionIntegration[]> {
-		const snapshot = await this.collection.where("userId", "==", userId).get();
-		if (snapshot.empty) {
-			return [];
-		}
-		return snapshot.docs.map((doc) => {
-			const data = doc.data() as DocumentData;
-			return new UserNotionIntegration(
-				data.userId,
-				data.integrationName,
-				data.notionIntegrationToken,
-				data.id,
-				data.createdAt.toDate(),
-				data.updatedAt.toDate(),
-			);
-		});
-	}
+		const save = async (
+			integration: InternalUserNotionIntegration,
+		): Promise<void> => {
+			await collection.doc(integration.id).set(integration);
+		};
 
-	async deleteById(id: string, userId: string): Promise<void> {
-		// Optional: Verify userId before deleting to ensure user owns this integration
-		const integration = await this.findById(id, userId);
-		if (!integration) {
-			// Or throw an error indicating not found or not authorized
-			console.warn(
-				`Integration with id ${id} not found for user ${userId} or user is not authorized to delete.`,
+		const findById = async (
+			id: string,
+			userId: string,
+		): Promise<InternalUserNotionIntegration | null> => {
+			const doc = await collection.doc(id).get();
+			if (!doc.exists) return null;
+			const data = doc.data();
+			if (data?.userId !== userId) return null;
+			return internalUserNotionIntegrationSchema.parse(data);
+		};
+
+		const findAllByUserId = async (
+			userId: string,
+		): Promise<InternalUserNotionIntegration[]> => {
+			const snapshot = await collection.where("userId", "==", userId).get();
+			if (snapshot.empty) return [];
+			return snapshot.docs.map((doc) =>
+				internalUserNotionIntegrationSchema.parse(doc.data()),
 			);
-			return;
-		}
-		await this.collection.doc(id).delete();
-	}
-}
+		};
+
+		const deleteById = async (id: string, userId: string): Promise<void> => {
+			const doc = await findById(id, userId);
+			if (doc) {
+				await collection.doc(id).delete();
+			}
+		};
+
+		return { save, findById, findAllByUserId, deleteById };
+	};

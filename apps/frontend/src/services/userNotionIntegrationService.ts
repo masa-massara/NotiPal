@@ -1,5 +1,10 @@
 import { fetchApiClient } from "@/lib/apiClient";
-import type { NotionIntegration } from "@/types/notionIntegration";
+import {
+	type UserNotionIntegration as NotionIntegration,
+	apiResponseSchema,
+	userNotionIntegrationSchema,
+} from "@notipal/common";
+import { z } from "zod";
 
 /**
  * Fetches all Notion integrations for the current user.
@@ -10,8 +15,24 @@ export const getUserNotionIntegrations = async (
 	const response = await fetchApiClient("/me/notion-integrations", idToken, {
 		method: "GET",
 	});
-	// fetchApiClient handles non-ok responses by throwing an error
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(
+		z.array(userNotionIntegrationSchema),
+	).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**
@@ -21,8 +42,8 @@ export const getUserNotionIntegrations = async (
 export const createUserNotionIntegration = async (
 	idToken: string,
 	data: {
-		integrationName: string; // Changed from 'name' to 'integrationName'
-		notionIntegrationToken: string; // Changed from 'token' to 'notionIntegrationToken'
+		integrationName: string;
+		notionIntegrationToken: string;
 	},
 ): Promise<NotionIntegration> => {
 	const response = await fetchApiClient("/me/notion-integrations", idToken, {
@@ -32,8 +53,24 @@ export const createUserNotionIntegration = async (
 		},
 		body: JSON.stringify(data),
 	});
-	// fetchApiClient handles non-ok responses by throwing an error
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(
+		userNotionIntegrationSchema,
+	).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**

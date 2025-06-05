@@ -30,14 +30,13 @@ import {
 import { createTemplate } from "@/services/templateService";
 import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService";
 import { idTokenAtom } from "@/store/globalAtoms";
-import type { Destination } from "@/types/destination";
-import type {
-	NotionDatabase,
-	NotionIntegration,
-	NotionProperty,
-} from "@/types/notionIntegration";
-import type { CreateTemplateData } from "@/types/template";
 import { zodResolver } from "@hookform/resolvers/zod";
+import type {
+	CreateTemplateApiInput as CreateTemplateData,
+	Destination,
+	UserNotionIntegration as NotionIntegration,
+} from "@notipal/common";
+import { createTemplateApiSchema } from "@notipal/common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai";
 import { Trash2 } from "lucide-react";
@@ -45,30 +44,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useCallback } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import * as z from "zod";
+import type { z } from "zod";
 
-const formSchema = z.object({
-	name: z.string().min(1, { message: "Template name is required." }),
-	userNotionIntegrationId: z
-		.string()
-		.min(1, { message: "Notion integration is required." }),
-	notionDatabaseId: z
-		.string()
-		.min(1, { message: "Notion Database ID is required." }),
-	conditions: z
-		.array(
-			z.object({
-				propertyId: z.string().min(1, "Property selection is required."),
-				operator: z.string().min(1, "Operator selection is required."),
-				value: z.string().optional(), // 値はオプション、型によって必須チェックを分けるか、常に文字列として扱う
-			}),
-		)
-		.optional(),
-	body: z.string().min(1, { message: "Message body is required." }),
-	destinationId: z.string().min(1, { message: "Destination is required." }),
-});
-
+const formSchema = createTemplateApiSchema;
 type FormData = z.infer<typeof formSchema>;
+
+// 一時的な型定義（本来は共通パッケージに移すべき）
+type NotionDatabase = { id: string; name: string };
+type NotionProperty = {
+	id: string;
+	name: string;
+	type: string;
+	options?: { id: string; name: string; color?: string }[];
+};
 
 function NewTemplatePage() {
 	const router = useRouter();
@@ -164,7 +152,10 @@ function NewTemplatePage() {
 		// console.log("【FE Log 5.2】Notionデータベース一覧ロード中 (isLoading):", isLoadingNotionDatabases);
 		// console.log("【FE Log 5.3】Notionデータベース一覧フェッチ中 (isFetching):", isFetchingNotionDatabases);
 		if (errorNotionDatabases) {
-			console.error("【FE Log 5.4】Notionデータベース一覧取得エラー (error):", errorNotionDatabases);
+			console.error(
+				"【FE Log 5.4】Notionデータベース一覧取得エラー (error):",
+				errorNotionDatabases,
+			);
 		}
 	}, [errorNotionDatabases]);
 
@@ -266,9 +257,9 @@ function NewTemplatePage() {
 								placeholder="e.g., New Task Assigned Notification"
 								{...register("name")}
 							/>
-							{errors.name && (
-								<p className="text-red-600 text-sm">{errors.name.message}</p>
-							)}
+							{typeof errors.name?.message === "string"
+								? errors.name.message
+								: ""}
 						</div>
 
 						<div className="space-y-2">
@@ -310,7 +301,7 @@ function NewTemplatePage() {
 									</Select>
 								)}
 							/>
-							{errors.userNotionIntegrationId && (
+							{typeof errors.userNotionIntegrationId?.message === "string" && (
 								<p className="text-red-600 text-sm">
 									{errors.userNotionIntegrationId.message}
 								</p>
@@ -341,7 +332,8 @@ function NewTemplatePage() {
 												placeholder={
 													!selectedNotionIntegrationId
 														? "Select a Notion Integration first"
-														: isLoadingNotionDatabases || isFetchingNotionDatabases
+														: isLoadingNotionDatabases ||
+																isFetchingNotionDatabases
 															? "Loading databases..."
 															: "Select a Notion Database"
 												}
@@ -361,7 +353,10 @@ function NewTemplatePage() {
 												</SelectItem>
 											) : errorNotionDatabases ? (
 												<SelectItem value="error-db" disabled>
-													Error fetching databases: {errorNotionDatabases.message}
+													Error fetching databases:{" "}
+													{typeof errorNotionDatabases.message === "string"
+														? errorNotionDatabases.message
+														: ""}
 												</SelectItem>
 											) : !isLoadingNotionDatabases &&
 												notionDatabases &&
@@ -388,7 +383,7 @@ function NewTemplatePage() {
 									</Select>
 								)}
 							/>
-							{errors.notionDatabaseId && (
+							{typeof errors.notionDatabaseId?.message === "string" && (
 								<p className="text-red-600 text-sm">
 									{errors.notionDatabaseId.message}
 								</p>
@@ -409,13 +404,17 @@ function NewTemplatePage() {
 						{isLoadingDbProperties && selectedNotionDatabaseId && (
 							<p>Loading properties...</p>
 						)}
-						{errorDbProperties && (
-							<p className="text-red-600 text-sm">
-								Error loading database properties: {errorDbProperties.message}
-							</p>
-						)}
+						{errorDbProperties &&
+							typeof errorDbProperties.message === "string" && (
+								<p className="text-red-600 text-sm">
+									{errorDbProperties.message}
+								</p>
+							)}
 						{!isLoadingDbProperties &&
-							!errorDbProperties &&
+							!(
+								errorDbProperties &&
+								typeof errorDbProperties.message === "string"
+							) &&
 							selectedNotionDatabaseId &&
 							(!databaseProperties || databaseProperties.length === 0) && (
 								<p className="text-muted-foreground text-sm">
@@ -482,7 +481,8 @@ function NewTemplatePage() {
 													</Select>
 												)}
 											/>
-											{errors.conditions?.[index]?.propertyId && (
+											{typeof errors.conditions?.[index]?.propertyId
+												?.message === "string" && (
 												<p className="mt-1 text-red-600 text-xs">
 													{errors.conditions[index]?.propertyId?.message}
 												</p>
@@ -535,7 +535,8 @@ function NewTemplatePage() {
 													</Select>
 												)}
 											/>
-											{errors.conditions?.[index]?.operator && (
+											{typeof errors.conditions?.[index]?.operator?.message ===
+												"string" && (
 												<p className="mt-1 text-red-600 text-xs">
 													{errors.conditions[index]?.operator?.message}
 												</p>
@@ -557,7 +558,8 @@ function NewTemplatePage() {
 													)
 												}
 											/>
-											{errors.conditions?.[index]?.value && (
+											{typeof errors.conditions?.[index]?.value?.message ===
+												"string" && (
 												<p className="mt-1 text-red-600 text-xs">
 													{errors.conditions[index]?.value?.message}
 												</p>
@@ -585,7 +587,8 @@ function NewTemplatePage() {
 							disabled={
 								!selectedNotionDatabaseId ||
 								isLoadingDbProperties ||
-								!!errorDbProperties ||
+								(errorDbProperties &&
+									typeof errorDbProperties.message === "string") ||
 								!databaseProperties ||
 								databaseProperties.length === 0 ||
 								mutation.isPending
@@ -594,13 +597,13 @@ function NewTemplatePage() {
 						>
 							Add Condition
 						</Button>
-						{errors.conditions &&
-							!Array.isArray(errors.conditions) &&
-							errors.conditions.root && (
+						{!Array.isArray(errors.conditions) ? (
+							typeof errors.conditions?.root?.message === "string" ? (
 								<p className="text-red-600 text-sm">
 									{errors.conditions.root.message}
 								</p>
-							)}
+							) : null
+						) : null}
 					</CardContent>
 				</Card>
 
@@ -616,7 +619,7 @@ function NewTemplatePage() {
 							rows={5}
 							{...register("body")}
 						/>
-						{errors.body && (
+						{typeof errors.body?.message === "string" && (
 							<p className="text-red-600 text-sm">{errors.body.message}</p>
 						)}
 						<p className="text-muted-foreground text-xs">
@@ -680,7 +683,7 @@ function NewTemplatePage() {
 								</Select>
 							)}
 						/>
-						{errors.destinationId && (
+						{typeof errors.destinationId?.message === "string" && (
 							<p className="text-red-600 text-sm">
 								{errors.destinationId.message}
 							</p>

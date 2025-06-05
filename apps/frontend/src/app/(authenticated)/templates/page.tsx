@@ -26,9 +26,11 @@ import { getDestinations } from "@/services/destinationService"; // これはuse
 import { deleteTemplate, getTemplates } from "@/services/templateService";
 import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService"; // これはatom経由なので修正不要
 import { idTokenAtom } from "@/store/globalAtoms"; // idToken取得のため
-import type { Destination } from "@/types/destination";
-import type { NotionIntegration } from "@/types/notionIntegration";
-import type { Template } from "@/types/template";
+import type {
+	Destination,
+	UserNotionIntegration as NotionIntegration,
+	Template,
+} from "@notipal/common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAtomValue } from "jotai"; // idToken取得のため
 import Link from "next/link";

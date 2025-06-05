@@ -1,5 +1,10 @@
 // Removed: import { fetchApiClient } from "@/lib/apiClient";
-import type { Destination } from "@/types/destination";
+import {
+	type Destination,
+	apiResponseSchema,
+	destinationSchema,
+} from "@notipal/common";
+import { z } from "zod";
 
 // Define a type for the API client methods expected by the service
 export interface ApiClientMethods {
@@ -37,7 +42,24 @@ export const getDestinations = async (
 	if (!response.ok) {
 		throw await handleErrorResponse(response, "Failed to fetch destinations");
 	}
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(
+		z.array(destinationSchema),
+	).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**
@@ -55,7 +77,22 @@ export const getDestination = async (
 			`Failed to fetch destination with ID ${id}`,
 		);
 	}
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(destinationSchema).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**
@@ -70,7 +107,22 @@ export const createDestination = async (
 	if (!response.ok) {
 		throw await handleErrorResponse(response, "Failed to create destination");
 	}
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(destinationSchema).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**
@@ -90,7 +142,22 @@ export const updateDestination = async (
 			`Failed to update destination with ID ${id}`,
 		);
 	}
-	return response.json();
+	const json = await response.json();
+	const validationResult = apiResponseSchema(destinationSchema).safeParse(json);
+	if (!validationResult.success) {
+		console.error(
+			"API response schema validation failed:",
+			validationResult.error,
+		);
+		throw new Error("Received an invalid API response format.");
+	}
+	const apiData = validationResult.data;
+	if (apiData.success === false) {
+		throw new Error(
+			apiData.message || `API returned error code: ${apiData.error.code}`,
+		);
+	}
+	return apiData.data;
 };
 
 /**

@@ -1,5 +1,5 @@
 // src/domain/repositories/destinationRepository.ts
-import type { Destination } from "../entities/destination";
+import type { Destination as DestinationData } from "@notipal/common";
 
 export interface DestinationRepository {
 	/**
@@ -8,7 +8,7 @@ export interface DestinationRepository {
 	 * シグネチャにuserIdを明示的に追加する必要はない。
 	 * 実装側でエンティティ内のuserIdを利用して適切な保存処理を行う。
 	 */
-	save(destination: Destination): Promise<void>;
+	save(destination: DestinationData): Promise<void>;
 
 	/**
 	 * 指定されたIDとユーザーIDに一致する送信先を1件取得する。
@@ -16,7 +16,7 @@ export interface DestinationRepository {
 	 * @param id 取得対象の送信先ID
 	 * @param userId 送信先を所有するユーザーのID
 	 */
-	findById(id: string, userId: string): Promise<Destination | null>;
+	findById(id: string, userId: string): Promise<DestinationData | null>;
 
 	/**
 	 * 指定されたIDとユーザーIDに一致する送信先を削除する。
@@ -29,5 +29,5 @@ export interface DestinationRepository {
 	 * 指定されたユーザーIDに一致する全ての送信先を取得する。
 	 * @param userId 送信先を所有するユーザーのID
 	 */
-	findAll(userId: string): Promise<Destination[]>;
+	findAll(userId: string): Promise<DestinationData[]>;
 }
