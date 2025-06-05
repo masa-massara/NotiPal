@@ -1,5 +1,6 @@
 // src/main.ts
 import { Hono } from "hono";
+import "@hono/zod-validator";
 
 // Firebase Admin SDK関連のimport
 import { App, cert, getApps, initializeApp } from "firebase-admin/app";

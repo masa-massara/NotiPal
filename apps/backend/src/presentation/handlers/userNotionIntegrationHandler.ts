@@ -88,9 +88,21 @@ function listUserAccessibleDatabasesHandlerFactory(
 }
 
 export function createUserNotionIntegrationHandlers(
-	createUseCase: ReturnType<typeof import("../../application/usecases/createUserNotionIntegrationUseCase")["createUserNotionIntegrationUseCase"]>,
-	listUseCase: ReturnType<typeof import("../../application/usecases/listUserNotionIntegrationsUseCase")["listUserNotionIntegrationsUseCase"]>,
-	deleteUseCase: ReturnType<typeof import("../../application/usecases/deleteUserNotionIntegrationUseCase")["deleteUserNotionIntegrationUseCase"]>,	
+	createUseCase: ReturnType<
+		typeof import(
+			"../../application/usecases/createUserNotionIntegrationUseCase",
+		)["createUserNotionIntegrationUseCase"]
+	>,
+	listUseCase: ReturnType<
+		typeof import(
+			"../../application/usecases/listUserNotionIntegrationsUseCase",
+		)["listUserNotionIntegrationsUseCase"]
+	>,
+	deleteUseCase: ReturnType<
+		typeof import(
+			"../../application/usecases/deleteUserNotionIntegrationUseCase",
+		)["deleteUserNotionIntegrationUseCase"]
+	>,
 	listDatabasesUseCase: ListNotionDatabasesUseCase,
 ) {
 	// Create

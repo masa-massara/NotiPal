@@ -11,3 +11,4 @@ export const errorStatusMap: Record<ErrorCode, number> = {
   TEMPLATE_NOT_FOUND: 404,
   DESTINATION_NOT_FOUND: 404,
 }; 
+ 
