@@ -10,12 +10,12 @@ export const userNotionIntegrationSchema = z.object({
 		if (arg instanceof Timestamp) return arg.toDate();
 		if (typeof arg === "string" || typeof arg === "number") return new Date(arg);
 		return arg;
-	}, z.date()).describe("作成日時"),
+	}, z.date().transform((val) => val.toISOString())).describe("作成日時"),
 	updatedAt: z.preprocess((arg) => {
 		if (arg instanceof Timestamp) return arg.toDate();
 		if (typeof arg === "string" || typeof arg === "number") return new Date(arg);
 		return arg;
-	}, z.date()).describe("更新日時"),
+	}, z.date().transform((val) => val.toISOString())).describe("更新日時"),
 });
 
 // バックエンド内部で暗号化トークンを扱うためのスキーマ (外部には公開しない)

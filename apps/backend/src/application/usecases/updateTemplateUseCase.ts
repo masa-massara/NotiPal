@@ -128,7 +128,7 @@ export const createUpdateTemplateUseCase = (deps: {
 			updated = true;
 		}
 		if (updated) {
-			existing.updatedAt = new Date();
+			existing.updatedAt = new Date().toISOString();
 			await templateRepository.save(existing);
 		}
 		return existing;

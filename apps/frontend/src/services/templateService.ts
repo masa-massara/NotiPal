@@ -1,4 +1,4 @@
-import { fetchApiClient } from "@/lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
 import {
 	type Template,
 	apiResponseSchema,
@@ -13,10 +13,8 @@ import { z } from "zod";
 /**
  * Fetches all templates for the current user.
  */
-export const getTemplates = async (idToken: string): Promise<Template[]> => {
-	const response = await fetchApiClient("/templates", idToken, {
-		method: "GET",
-	});
+export const getTemplates = async (): Promise<Template[]> => {
+	const response = await apiClient.templates.$get();
 	const json = await response.json();
 	const validationResult = apiResponseSchema(z.array(templateSchema)).safeParse(
 		json,
@@ -41,13 +39,8 @@ export const getTemplates = async (idToken: string): Promise<Template[]> => {
  * Fetches a single template by its ID.
  * @param id - The ID of the template to fetch.
  */
-export const getTemplate = async (
-	idToken: string,
-	id: string,
-): Promise<Template> => {
-	const response = await fetchApiClient(`/templates/${id}`, idToken, {
-		method: "GET",
-	});
+export const getTemplate = async (id: string): Promise<Template> => {
+	const response = await apiClient.templates[":id"].$get({ param: { id } });
 	const json = await response.json();
 	const validationResult = apiResponseSchema(templateSchema).safeParse(json);
 	if (!validationResult.success) {
@@ -71,16 +64,9 @@ export const getTemplate = async (
  * @param data - Object containing the data for the new template.
  */
 export const createTemplate = async (
-	idToken: string,
 	data: CreateTemplateData,
 ): Promise<Template> => {
-	const response = await fetchApiClient("/templates", idToken, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify(data),
-	});
+	const response = await apiClient.templates.$post({ json: data });
 	const json = await response.json();
 	const validationResult = apiResponseSchema(templateSchema).safeParse(json);
 	if (!validationResult.success) {
@@ -105,16 +91,12 @@ export const createTemplate = async (
  * @param data - Object containing the data to update.
  */
 export const updateTemplate = async (
-	idToken: string,
 	id: string,
 	data: UpdateTemplateData,
 ): Promise<Template> => {
-	const response = await fetchApiClient(`/templates/${id}`, idToken, {
-		method: "PUT",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify(data),
+	const response = await apiClient.templates[":id"].$put({
+		param: { id },
+		json: data,
 	});
 	const json = await response.json();
 	const validationResult = apiResponseSchema(templateSchema).safeParse(json);
@@ -138,12 +120,10 @@ export const updateTemplate = async (
  * Deletes a specific template for the current user.
  * @param id - The ID of the template to delete.
  */
-export const deleteTemplate = async (
-	idToken: string,
-	id: string,
-): Promise<void> => {
-	await fetchApiClient(`/templates/${id}`, idToken, {
-		method: "DELETE",
-	});
+export const deleteTemplate = async (id: string): Promise<void> => {
+	const response = await apiClient.templates[":id"].$delete({ param: { id } });
+	if (!response.ok) {
+		throw new Error(`Failed to delete template with ID ${id}`);
+	}
 	// No content expected for a successful DELETE
 };

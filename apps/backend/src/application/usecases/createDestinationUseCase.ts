@@ -45,8 +45,8 @@ export const createCreateDestinationUseCase = (dependencies: {
 			userId: newDestinationEntity.userId,
 			name: newDestinationEntity.name,
 			webhookUrl: newDestinationEntity.webhookUrl,
-			createdAt: newDestinationEntity.createdAt,
-			updatedAt: newDestinationEntity.updatedAt,
+			createdAt: newDestinationEntity.createdAt.toISOString(),
+			updatedAt: newDestinationEntity.updatedAt.toISOString(),
 		};
 
 		await destinationRepository.save(destinationData);

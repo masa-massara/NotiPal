@@ -1,5 +1,3 @@
-// src/presentation/handlers/userNotionIntegrationHandler.ts
-
 import { createUserNotionIntegrationApiSchema } from "@notipal/common";
 import type { InternalUserNotionIntegration } from "@notipal/common";
 import { ErrorCode } from "@notipal/common";
@@ -11,7 +9,6 @@ import type {
 } from "../../application/dtos/notionDatabaseDTOs";
 import type { EncryptionService } from "../../application/services/encryptionService";
 import type { UserNotionIntegrationRepository } from "../../domain/repositories/userNotionIntegrationRepository";
-import { respondError, respondSuccess } from "../utils/apiResponder";
 
 // Factory function for the new handler
 type ListNotionDatabasesUseCase = (
@@ -72,6 +69,7 @@ function listUserAccessibleDatabasesHandlerFactory(
 		} catch (error: unknown) {
 			// ログ 5: エラー発生時
 			if (error instanceof HTTPException) {
+				// Re-throw HTTPException directly if it's already one
 				throw error;
 			}
 			const message = error instanceof Error ? error.message : String(error);
@@ -87,58 +85,40 @@ function listUserAccessibleDatabasesHandlerFactory(
 	};
 }
 
+import type { InitializedUseCases } from "../../di";
+
 export function createUserNotionIntegrationHandlers(
-	createUseCase: ReturnType<
-		typeof import(
-			"../../application/usecases/createUserNotionIntegrationUseCase",
-		)["createUserNotionIntegrationUseCase"]
-	>,
-	listUseCase: ReturnType<
-		typeof import(
-			"../../application/usecases/listUserNotionIntegrationsUseCase",
-		)["listUserNotionIntegrationsUseCase"]
-	>,
-	deleteUseCase: ReturnType<
-		typeof import(
-			"../../application/usecases/deleteUserNotionIntegrationUseCase",
-		)["deleteUserNotionIntegrationUseCase"]
-	>,
-	listDatabasesUseCase: ListNotionDatabasesUseCase,
+	useCases: InitializedUseCases,
 ) {
 	// Create
 	const createIntegrationHandler = async (c: Context) => {
 		try {
 			const userId = c.var.userId;
 			if (typeof userId !== "string") {
-				return respondError(
-					c,
-					ErrorCode.UNAUTHENTICATED,
-					undefined,
-					"User ID not found or invalid.",
-				);
+				throw new HTTPException(401, {
+					message: "User ID not found or invalid.",
+				});
 			}
 			const body = await c.req.json();
 			const parseResult = createUserNotionIntegrationApiSchema.safeParse(body);
 			if (!parseResult.success) {
-				return respondError(
-					c,
-					ErrorCode.VALIDATION_ERROR,
-					parseResult.error.format(),
-					"バリデーションエラー",
-				);
+				throw new HTTPException(400, {
+					message: "Validation Error",
+					cause: parseResult.error.format(),
+				});
 			}
 			const input = { userId, ...parseResult.data };
-			// @ts-ignore
-			const output = await createUseCase(input);
-			return respondSuccess(c, output, "Notion連携を作成しました", 201);
+			const output = await useCases.createUserNotionIntegrationUseCaseFn(input);
+			return c.json(output, 201);
 		} catch (error: unknown) {
+			if (error instanceof HTTPException) {
+				throw error;
+			}
 			const message = error instanceof Error ? error.message : String(error);
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				message,
-				"Notion連携の作成に失敗しました",
-			);
+			throw new HTTPException(500, {
+				message: "Failed to create Notion integration",
+				cause: message,
+			});
 		}
 	};
 
@@ -147,24 +127,23 @@ export function createUserNotionIntegrationHandlers(
 		try {
 			const userId = c.var.userId;
 			if (typeof userId !== "string") {
-				return respondError(
-					c,
-					ErrorCode.UNAUTHENTICATED,
-					undefined,
-					"User ID not found or invalid.",
-				);
+				throw new HTTPException(401, {
+					message: "User ID not found or invalid.",
+				});
 			}
-			// @ts-ignore
-			const output = await listUseCase({ userId });
-			return respondSuccess(c, output, "Notion連携一覧取得");
+			const output = await useCases.listUserNotionIntegrationsUseCaseFn({
+				userId,
+			});
+			return c.json(output);
 		} catch (error: unknown) {
+			if (error instanceof HTTPException) {
+				throw error;
+			}
 			const message = error instanceof Error ? error.message : String(error);
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				message,
-				"Notion連携一覧の取得に失敗しました",
-			);
+			throw new HTTPException(500, {
+				message: "Failed to list Notion integrations",
+				cause: message,
+			});
 		}
 	};
 
@@ -174,45 +153,42 @@ export function createUserNotionIntegrationHandlers(
 			const integrationId = c.req.param("integrationId");
 			const userId = c.var.userId;
 			if (typeof userId !== "string") {
-				return respondError(
-					c,
-					ErrorCode.UNAUTHENTICATED,
-					undefined,
-					"User ID not found or invalid.",
-				);
+				throw new HTTPException(401, {
+					message: "User ID not found or invalid.",
+				});
 			}
 			if (!integrationId) {
-				return respondError(
-					c,
-					ErrorCode.VALIDATION_ERROR,
-					undefined,
-					"integrationId path parameter is required",
-				);
+				throw new HTTPException(400, {
+					message: "integrationId path parameter is required",
+				});
 			}
-			// @ts-ignore
-			const result = await deleteUseCase({ integrationId, userId });
+			const result = await useCases.deleteUserNotionIntegrationUseCaseFn({
+				integrationId,
+				userId,
+			});
 			if (!result.success) {
-				return respondError(c, ErrorCode.NOT_FOUND, undefined, result.message);
+				throw new HTTPException(404, {
+					message: result.message,
+				});
 			}
-			return respondSuccess(
-				c,
-				{ message: result.message },
-				"Notion連携を削除しました",
-			);
+			return c.body(null, 204);
 		} catch (error: unknown) {
+			if (error instanceof HTTPException) {
+				throw error;
+			}
 			const message = error instanceof Error ? error.message : String(error);
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				message,
-				"Notion連携の削除に失敗しました",
-			);
+			throw new HTTPException(500, {
+				message: "Failed to delete Notion integration",
+				cause: message,
+			});
 		}
 	};
 
 	// Instantiate the new handler
 	const listUserAccessibleDatabasesHandler =
-		listUserAccessibleDatabasesHandlerFactory(listDatabasesUseCase);
+		listUserAccessibleDatabasesHandlerFactory(
+			useCases.listNotionDatabasesUseCase,
+		);
 
 	return {
 		createIntegrationHandler,

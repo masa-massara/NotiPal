@@ -5,10 +5,10 @@ import type {
 	GetNotionDatabasePropertiesInput,
 	GetNotionDatabasePropertiesOutput,
 } from "../../application/dtos/notionDatabaseDTOs";
-import type { GetNotionDatabasePropertiesUseCase } from "../../application/usecases/getNotionDatabasePropertiesUseCase";
+import type { InitializedUseCases } from "../../di";
 
 export function getNotionDatabasePropertiesHandlerFactory(
-	useCase: GetNotionDatabasePropertiesUseCase,
+	useCase: InitializedUseCases["getNotionDatabasePropertiesUseCase"],
 ) {
 	return async (c: Context) => {
 		try {
@@ -45,7 +45,7 @@ export function getNotionDatabasePropertiesHandlerFactory(
 			};
 
 			const output: GetNotionDatabasePropertiesOutput =
-				await useCase.execute(input);
+				await useCase(input);
 			return c.json(output, 200);
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		} catch (error: any) {

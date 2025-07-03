@@ -1,9 +1,6 @@
 // src/domain/services/templateMatcherService.ts
-import type {
-	Template,
-	TemplateCondition,
-	TemplateConditionOperator,
-} from "../entities/template";
+import type { TemplateCondition, Template } from "@notipal/common";
+type TemplateConditionOperator = TemplateCondition["operator"];
 import type {
 	NotionDatabaseSchema,
 	NotionPropertySchema,

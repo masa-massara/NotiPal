@@ -22,12 +22,12 @@ export const templateSchema = z.object({
 		if (arg instanceof Timestamp) return arg.toDate();
 		if (typeof arg === "string" || typeof arg === "number") return new Date(arg);
 		return arg;
-	}, z.date()).describe("作成日時"),
+	}, z.date().transform((val) => val.toISOString())).describe("作成日時"),
 	updatedAt: z.preprocess((arg) => {
 		if (arg instanceof Timestamp) return arg.toDate();
 		if (typeof arg === "string" || typeof arg === "number") return new Date(arg);
 		return arg;
-	}, z.date()).describe("更新日時"),
+	}, z.date().transform((val) => val.toISOString())).describe("更新日時"),
 });
 
 // APIの入力用スキーマ (新規作成時)

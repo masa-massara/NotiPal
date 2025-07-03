@@ -16,7 +16,7 @@ export const destinationSchema = z.object({
 			return new Date(arg);
 		}
 		return arg;
-	}, z.date()).describe("作成日時"),
+	}, z.date().transform((val) => val.toISOString())).describe("作成日時"),
 	updatedAt: z.preprocess((arg) => {
 		if (arg instanceof Timestamp) {
 			return arg.toDate();
@@ -25,7 +25,7 @@ export const destinationSchema = z.object({
 			return new Date(arg);
 		}
 		return arg;
-	}, z.date()).describe("更新日時"),
+	}, z.date().transform((val) => val.toISOString())).describe("更新日時"),
 });
 
 // APIの入力用スキーマ (id, userId, 日付はAPIからは受け取らない)

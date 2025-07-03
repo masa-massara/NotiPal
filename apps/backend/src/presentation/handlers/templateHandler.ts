@@ -3,12 +3,9 @@ import {
 	ErrorCode,
 	type Template,
 	type UpdateTemplateApiInput,
-	createTemplateApiSchema,
-	updateTemplateApiSchema,
 } from "@notipal/common";
-// src/presentation/handlers/templateHandler.ts
 import type { Context, TypedResponse } from "hono";
-import { respondError, respondSuccess } from "../utils/apiResponder";
+import { HTTPException } from "hono/http-exception";
 
 // --- createTemplateHandler用の型定義 ---
 type CreateTemplateUseCaseFn = (
@@ -20,21 +17,18 @@ type CreateTemplateHandlerContext = Context<{
 }>;
 export const createTemplateHandler =
 	(createUseCase: CreateTemplateUseCaseFn) =>
-	async (c: CreateTemplateHandlerContext): Promise<TypedResponse> => {
+	async (c: CreateTemplateHandlerContext): Promise<TypedResponse<Template, 201, "json">> => {
 		try {
 			const userId = c.get("userId");
 			const validatedBody = await c.req.json();
 
 			const result = await createUseCase({ ...validatedBody, userId });
-			return respondSuccess(c, result, "Template created successfully.", 201);
+			return c.json(result, 201);
 		} catch (error: unknown) {
 			const err = error as { message?: string };
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				undefined,
-				err.message,
-			);
+			throw new HTTPException(500, {
+				message: err.message,
+			});
 		}
 	};
 
@@ -48,34 +42,30 @@ type GetTemplateUseCaseFn = (input: {
 }) => Promise<Template | null>;
 export const getTemplateByIdHandler =
 	(getUseCase: GetTemplateUseCaseFn) =>
-	async (c: GetTemplateContext): Promise<TypedResponse> => {
+	async (c: GetTemplateContext): Promise<TypedResponse<Template | null, 200 | 404, "json">> => {
 		try {
 			const userId = c.get("userId");
 			const id = c.req.param("id");
-			if (!id)
-				return respondError(
-					c,
-					ErrorCode.VALIDATION_ERROR,
-					undefined,
-					"Template ID is required",
-				);
+			if (!id) {
+				throw new HTTPException(400, {
+					message: "Template ID is required",
+				});
+			}
 			const result = await getUseCase({ id, userId });
-			if (!result)
-				return respondError(
-					c,
-					ErrorCode.NOT_FOUND,
-					undefined,
-					"Template not found",
-				);
-			return respondSuccess(c, result);
+			if (!result) {
+				throw new HTTPException(404, {
+					message: "Template not found",
+				});
+			}
+			return c.json(result);
 		} catch (error: unknown) {
 			const err = error as { message?: string };
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				undefined,
-				err.message,
-			);
+			if (error instanceof HTTPException) {
+				throw error;
+			}
+			throw new HTTPException(500, {
+				message: err.message,
+			});
 		}
 	};
 
@@ -88,19 +78,16 @@ type ListTemplatesUseCaseFn = (input: { userId: string }) => Promise<
 >;
 export const listTemplatesHandler =
 	(listUseCase: ListTemplatesUseCaseFn) =>
-	async (c: ListTemplatesContext): Promise<TypedResponse> => {
+	async (c: ListTemplatesContext): Promise<TypedResponse<Template[], 200, "json">> => {
 		try {
 			const userId = c.get("userId");
 			const result = await listUseCase({ userId });
-			return respondSuccess(c, result);
+			return c.json(result);
 		} catch (error: unknown) {
 			const err = error as { message?: string };
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				undefined,
-				err.message,
-			);
+			throw new HTTPException(500, {
+				message: err.message,
+			});
 		}
 	};
 
@@ -114,28 +101,26 @@ type UpdateTemplateHandlerContext = Context<{
 }>;
 export const updateTemplateHandler =
 	(updateUseCase: UpdateTemplateUseCaseFn) =>
-	async (c: UpdateTemplateHandlerContext): Promise<TypedResponse> => {
+	async (c: UpdateTemplateHandlerContext): Promise<TypedResponse<Template, 200 | 404, "json">> => {
 		try {
 			const userId = c.get("userId");
 			const id = c.req.param("id");
-			if (!id)
-				return respondError(
-					c,
-					ErrorCode.VALIDATION_ERROR,
-					undefined,
-					"Template ID is required",
-				);
-			const validatedBody = c.req.json();
+			if (!id) {
+				throw new HTTPException(400, {
+					message: "Template ID is required",
+				});
+			}
+			const validatedBody = await c.req.json();
 			const result = await updateUseCase({ ...validatedBody, id, userId });
-			return respondSuccess(c, result, "Template updated successfully.");
+			return c.json(result);
 		} catch (error: unknown) {
 			const err = error as { message?: string };
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				undefined,
-				err.message,
-			);
+			if (error instanceof HTTPException) {
+				throw error;
+			}
+			throw new HTTPException(500, {
+				message: err.message,
+			});
 		}
 	};
 
@@ -149,26 +134,24 @@ type DeleteTemplateUseCaseFn = (input: {
 }) => Promise<void>;
 export const deleteTemplateHandler =
 	(deleteUseCase: DeleteTemplateUseCaseFn) =>
-	async (c: DeleteTemplateContext): Promise<TypedResponse> => {
+	async (c: DeleteTemplateContext): Promise<TypedResponse<null, 204 | 404, "body">> => {
 		try {
 			const userId = c.get("userId");
 			const id = c.req.param("id");
-			if (!id)
-				return respondError(
-					c,
-					ErrorCode.VALIDATION_ERROR,
-					undefined,
-					"Template ID is required",
-				);
+			if (!id) {
+				throw new HTTPException(400, {
+					message: "Template ID is required",
+				});
+			}
 			await deleteUseCase({ id, userId });
-			return respondSuccess(c, null, "Template deleted successfully.", 204);
+			return c.body(null, 204);
 		} catch (error: unknown) {
 			const err = error as { message?: string };
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				undefined,
-				err.message,
-			);
+			if (error instanceof HTTPException) {
+				throw error;
+			}
+			throw new HTTPException(500, {
+				message: err.message,
+			});
 		}
 	};

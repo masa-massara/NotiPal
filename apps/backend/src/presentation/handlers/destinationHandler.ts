@@ -1,8 +1,7 @@
-// src/presentation/handlers/destinationHandler.ts
 import { ErrorCode } from "@notipal/common";
 import type { Destination } from "@notipal/common";
 import type { Context } from "hono";
-import { respondError, respondSuccess } from "../utils/apiResponder";
+import { HTTPException } from "hono/http-exception";
 
 export const createDestinationHandlerFactory = (
 	createDestinationUseCase: (
@@ -14,18 +13,11 @@ export const createDestinationHandlerFactory = (
 			const userId = c.get("userId");
 			const body = await c.req.json();
 			const result = await createDestinationUseCase({ ...body, userId });
-			return respondSuccess(
-				c,
-				result,
-				"Destination created successfully.",
-				201,
-			);
+			return c.json(result, 201);
 		} catch (error: unknown) {
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				(error as Error).message,
-			);
+			throw new HTTPException(500, {
+				message: (error as Error).message,
+			});
 		}
 	};
 };
@@ -41,14 +33,19 @@ export const getDestinationByIdHandlerFactory = (
 			const userId = c.get("userId");
 			const id = c.req.param("id");
 			const result = await getDestinationUseCase({ id, userId });
-			if (!result) return respondError(c, ErrorCode.NOT_FOUND);
-			return respondSuccess(c, result);
+			if (!result) {
+				throw new HTTPException(404, {
+					message: "Destination not found",
+				});
+			}
+			return c.json(result);
 		} catch (error: unknown) {
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				(error as Error).message,
-			);
+			if (error instanceof HTTPException) {
+				throw error;
+			}
+			throw new HTTPException(500, {
+				message: (error as Error).message,
+			});
 		}
 	};
 };
@@ -62,13 +59,11 @@ export const listDestinationsHandlerFactory = (
 		try {
 			const userId = c.get("userId");
 			const result = await listDestinationsUseCase({ userId });
-			return respondSuccess(c, result);
+			return c.json(result);
 		} catch (error: unknown) {
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				(error as Error).message,
-			);
+			throw new HTTPException(500, {
+				message: (error as Error).message,
+			});
 		}
 	};
 };
@@ -84,16 +79,16 @@ export const updateDestinationHandlerFactory = (
 			const id = c.req.param("id");
 			const body = await c.req.json();
 			const result = await updateDestinationUseCase({ ...body, id, userId });
-			return respondSuccess(c, result, "Destination updated successfully.");
+			return c.json(result);
 		} catch (error: unknown) {
 			if ((error as Error).message?.includes("not found")) {
-				return respondError(c, ErrorCode.NOT_FOUND, (error as Error).message);
+				throw new HTTPException(404, {
+					message: (error as Error).message,
+				});
 			}
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				(error as Error).message,
-			);
+			throw new HTTPException(500, {
+				message: (error as Error).message,
+			});
 		}
 	};
 };
@@ -109,16 +104,16 @@ export const deleteDestinationHandlerFactory = (
 			const userId = c.get("userId");
 			const id = c.req.param("id");
 			await deleteDestinationUseCase({ id, userId });
-			return respondSuccess(c, null, "Destination deleted successfully.");
+			return c.body(null, 204);
 		} catch (error: unknown) {
 			if ((error as Error).message?.includes("not found")) {
-				return respondError(c, ErrorCode.NOT_FOUND, (error as Error).message);
+				throw new HTTPException(404, {
+					message: (error as Error).message,
+				});
 			}
-			return respondError(
-				c,
-				ErrorCode.INTERNAL_SERVER_ERROR,
-				(error as Error).message,
-			);
+			throw new HTTPException(500, {
+				message: (error as Error).message,
+			});
 		}
 	};
 };

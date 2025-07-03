@@ -1,15 +1,18 @@
 {
-	"name": "app",
+	"name": "@notipal/backend",
 	"scripts": {
 		"dev": "bun run --hot src/main.ts",
 		"start": "bun src/main.ts",
 		"lint": "bun biome lint ./src",
 		"format": "bun biome format --write ./src",
-		"check": "bun biome check --write ./src"
+		"check": "bun biome check --write ./src",
+		"build:types": "tsc -p tsconfig.dts.json",
+		"generate:api-types": "bun run src/main.ts & sleep 1 && openapi-typescript http://localhost:8080/doc --output ../../packages/common/src/types/api.d.ts && kill $!"
 	},
 	"dependencies": {
-		"@notipal/common": "workspace:*",
+		"@hono/swagger-ui": "^0.5.2",
 		"@notionhq/client": "^3.1.1",
+		"@notipal/common": "workspace:*",
 		"date-fns": "^4.1.0",
 		"firebase": "^11.8.1",
 		"firebase-admin": "^13.4.0",
@@ -18,7 +21,8 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
-		"@types/bun": "latest",
-		"@types/uuid": "^10.0.0"
+		"@hono/zod-openapi": "^0.19.9",
+		"@types/uuid": "^10.0.0",
+		"openapi-typescript": "^7.8.0"
 	}
 }

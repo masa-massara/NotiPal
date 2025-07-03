@@ -1,5 +1,5 @@
 // src/infrastructure/persistence/inMemory/inMemoryTemplateRepository.ts
-import type { Template } from "../../../domain/entities/template";
+import type { Template } from "@notipal/common";
 import type { TemplateRepository } from "../../../domain/repositories/templateRepository";
 // uuidのインポートは元のファイルにあればそのまま使う
 // import { v4 as uuidv4 } from "uuid";
