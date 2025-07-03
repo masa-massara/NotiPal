@@ -18,13 +18,20 @@ export class InMemoryDestinationRepository implements DestinationRepository {
 		return Promise.resolve();
 	}
 
-	async findById(id: string, userId: string): Promise<CommonDestination | null> {
-		const destination = this.destinations.find((d) => d.id === id && d.userId === userId);
+	async findById(
+		id: string,
+		userId: string,
+	): Promise<CommonDestination | null> {
+		const destination = this.destinations.find(
+			(d) => d.id === id && d.userId === userId,
+		);
 		return Promise.resolve(destination || null);
 	}
 
 	async deleteById(id: string, userId: string): Promise<void> {
-		const index = this.destinations.findIndex((d) => d.id === id && d.userId === userId);
+		const index = this.destinations.findIndex(
+			(d) => d.id === id && d.userId === userId,
+		);
 		if (index > -1) {
 			this.destinations.splice(index, 1);
 		}
@@ -32,7 +39,9 @@ export class InMemoryDestinationRepository implements DestinationRepository {
 	}
 
 	async findAll(userId: string): Promise<CommonDestination[]> {
-		const foundDestinations = this.destinations.filter((d) => d.userId === userId);
+		const foundDestinations = this.destinations.filter(
+			(d) => d.userId === userId,
+		);
 		return Promise.resolve([...foundDestinations]); // 配列のコピーを返す
 	}
 

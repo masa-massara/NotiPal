@@ -13,10 +13,7 @@ export const createDestinationRoutes = (useCases: InitializedUseCases) => {
 	const destinationRoutes = new OpenAPIHono<{
 		Variables: { userId: string };
 	}>()
-		.get(
-			"/",
-			listDestinationsHandlerFactory(useCases.listDestinationsUseCase),
-		)
+		.get("/", listDestinationsHandlerFactory(useCases.listDestinationsUseCase))
 		.post(
 			"/",
 			createDestinationHandlerFactory(useCases.createDestinationUseCase),

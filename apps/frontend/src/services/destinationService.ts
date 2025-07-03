@@ -1,9 +1,9 @@
+import { apiClient } from "@/lib/apiClient";
 import {
 	type Destination,
 	apiResponseSchema,
 	destinationSchema,
 } from "@notipal/common";
-import { apiClient } from "@/lib/apiClient";
 import { z } from "zod";
 
 /**

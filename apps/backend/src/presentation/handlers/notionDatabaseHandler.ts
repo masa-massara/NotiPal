@@ -44,8 +44,7 @@ export function getNotionDatabasePropertiesHandlerFactory(
 				integrationId,
 			};
 
-			const output: GetNotionDatabasePropertiesOutput =
-				await useCase(input);
+			const output: GetNotionDatabasePropertiesOutput = await useCase(input);
 			return c.json(output, 200);
 			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 		} catch (error: any) {

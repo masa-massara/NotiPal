@@ -1,4 +1,4 @@
-import { AppType } from "@notipal/common";
+import type { AppType } from "@notipal/common";
 import { hc } from "hono/client";
 
 const client = hc<AppType>(

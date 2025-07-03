@@ -7,21 +7,14 @@ import { createUserNotionIntegrationHandlers } from "../handlers/userNotionInteg
 export const createUserNotionIntegrationRoutes = (
 	useCases: InitializedUseCases,
 ) => {
-	const userNotionIntegrationHandlers = createUserNotionIntegrationHandlers(
-		useCases,
-	);
+	const userNotionIntegrationHandlers =
+		createUserNotionIntegrationHandlers(useCases);
 
 	const userNotionIntegrationRoutes = new OpenAPIHono<{
 		Variables: { userId: string };
 	}>()
-		.post(
-			"/",
-			userNotionIntegrationHandlers.createIntegrationHandler,
-		)
-		.get(
-			"/",
-			userNotionIntegrationHandlers.listIntegrationsHandler,
-		)
+		.post("/", userNotionIntegrationHandlers.createIntegrationHandler)
+		.get("/", userNotionIntegrationHandlers.listIntegrationsHandler)
 		.delete(
 			"/:integrationId",
 			userNotionIntegrationHandlers.deleteIntegrationHandler,

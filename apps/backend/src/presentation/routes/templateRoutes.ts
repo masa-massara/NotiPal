@@ -10,26 +10,11 @@ import {
 
 export const createTemplateRoutes = (useCases: InitializedUseCases) => {
 	const templateRoutes = new OpenAPIHono<{ Variables: { userId: string } }>()
-		.get(
-			"/",
-			listTemplatesHandler(useCases.listTemplatesUseCase),
-		)
-		.post(
-			"/",
-			createTemplateHandler(useCases.createTemplateUseCase),
-		)
-		.get(
-			"/:id",
-			getTemplateByIdHandler(useCases.getTemplateUseCase),
-		)
-		.put(
-			"/:id",
-			updateTemplateHandler(useCases.updateTemplateUseCase),
-		)
-		.delete(
-			"/:id",
-			deleteTemplateHandler(useCases.deleteTemplateUseCase),
-		);
+		.get("/", listTemplatesHandler(useCases.listTemplatesUseCase))
+		.post("/", createTemplateHandler(useCases.createTemplateUseCase))
+		.get("/:id", getTemplateByIdHandler(useCases.getTemplateUseCase))
+		.put("/:id", updateTemplateHandler(useCases.updateTemplateUseCase))
+		.delete("/:id", deleteTemplateHandler(useCases.deleteTemplateUseCase));
 
 	return templateRoutes;
 };

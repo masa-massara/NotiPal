@@ -1,3 +1,4 @@
+import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
@@ -9,7 +10,6 @@ import { createNotionDatabaseRoutes } from "./presentation/routes/notionDatabase
 import { createTemplateRoutes } from "./presentation/routes/templateRoutes";
 import { createUserNotionIntegrationRoutes } from "./presentation/routes/userNotionIntegrationRoutes";
 import { createWebhookRoutes } from "./presentation/routes/webhookRoutes";
-import { swaggerUI } from "@hono/swagger-ui";
 
 declare module "hono" {
 	interface ContextVariableMap {

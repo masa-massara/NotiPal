@@ -17,7 +17,9 @@ type CreateTemplateHandlerContext = Context<{
 }>;
 export const createTemplateHandler =
 	(createUseCase: CreateTemplateUseCaseFn) =>
-	async (c: CreateTemplateHandlerContext): Promise<TypedResponse<Template, 201, "json">> => {
+	async (
+		c: CreateTemplateHandlerContext,
+	): Promise<TypedResponse<Template, 201, "json">> => {
 		try {
 			const userId = c.get("userId");
 			const validatedBody = await c.req.json();
@@ -42,7 +44,9 @@ type GetTemplateUseCaseFn = (input: {
 }) => Promise<Template | null>;
 export const getTemplateByIdHandler =
 	(getUseCase: GetTemplateUseCaseFn) =>
-	async (c: GetTemplateContext): Promise<TypedResponse<Template | null, 200 | 404, "json">> => {
+	async (
+		c: GetTemplateContext,
+	): Promise<TypedResponse<Template | null, 200 | 404, "json">> => {
 		try {
 			const userId = c.get("userId");
 			const id = c.req.param("id");
@@ -78,7 +82,9 @@ type ListTemplatesUseCaseFn = (input: { userId: string }) => Promise<
 >;
 export const listTemplatesHandler =
 	(listUseCase: ListTemplatesUseCaseFn) =>
-	async (c: ListTemplatesContext): Promise<TypedResponse<Template[], 200, "json">> => {
+	async (
+		c: ListTemplatesContext,
+	): Promise<TypedResponse<Template[], 200, "json">> => {
 		try {
 			const userId = c.get("userId");
 			const result = await listUseCase({ userId });
@@ -101,7 +107,9 @@ type UpdateTemplateHandlerContext = Context<{
 }>;
 export const updateTemplateHandler =
 	(updateUseCase: UpdateTemplateUseCaseFn) =>
-	async (c: UpdateTemplateHandlerContext): Promise<TypedResponse<Template, 200 | 404, "json">> => {
+	async (
+		c: UpdateTemplateHandlerContext,
+	): Promise<TypedResponse<Template, 200 | 404, "json">> => {
 		try {
 			const userId = c.get("userId");
 			const id = c.req.param("id");
@@ -134,7 +142,9 @@ type DeleteTemplateUseCaseFn = (input: {
 }) => Promise<void>;
 export const deleteTemplateHandler =
 	(deleteUseCase: DeleteTemplateUseCaseFn) =>
-	async (c: DeleteTemplateContext): Promise<TypedResponse<null, 204 | 404, "body">> => {
+	async (
+		c: DeleteTemplateContext,
+	): Promise<TypedResponse<null, 204 | 404, "body">> => {
 		try {
 			const userId = c.get("userId");
 			const id = c.req.param("id");
