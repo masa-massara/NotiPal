@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { Timestamp } from "firebase-admin/firestore"; // バックエンドでの変換用にインポート想定
 
 // DBやドメインモデルで使う、完全な形のスキーマ
 export const destinationSchema = z.object({
@@ -8,19 +7,12 @@ export const destinationSchema = z.object({
 	name: z.string().optional().describe("送信先の管理名"),
 	webhookUrl: z.string().url({ message: "有効なURLを入力してください。" }).describe("通知先サービスのWebhook URL"),
 	createdAt: z.preprocess((arg) => {
-		// FirestoreのTimestampや文字列をDateに変換する
-		if (arg instanceof Timestamp) {
-			return arg.toDate();
-		}
 		if (typeof arg === "string" || typeof arg === "number") {
 			return new Date(arg);
 		}
 		return arg;
 	}, z.date().transform((val) => val.toISOString())).describe("作成日時"),
 	updatedAt: z.preprocess((arg) => {
-		if (arg instanceof Timestamp) {
-			return arg.toDate();
-		}
 		if (typeof arg === "string" || typeof arg === "number") {
 			return new Date(arg);
 		}

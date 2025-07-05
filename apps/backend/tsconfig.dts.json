@@ -4,10 +4,11 @@
 		"declaration": true,
 		"emitDeclarationOnly": true,
 		"outDir": "../../packages/common/src/types",
+		"rootDirs": ["src", "../../packages/common/src"],
 		"baseUrl": ".",
 		"paths": {
 			"@notipal/common": ["../../packages/common/src"]
 		}
 	},
-	"include": ["src/app.ts"]
+	"include": ["src"]
 }

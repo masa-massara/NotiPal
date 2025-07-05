@@ -5,9 +5,7 @@ import { getNotionDatabasePropertiesHandlerFactory } from "../handlers/notionDat
 export const createNotionDatabaseRoutes = (useCases: InitializedUseCases) => {
 	const notionDatabaseRoutes = new OpenAPIHono<{
 		Variables: { userId: string };
-	}>();
-
-	notionDatabaseRoutes.get(
+	}>().get(
 		"/:databaseId/properties",
 		getNotionDatabasePropertiesHandlerFactory(
 			useCases.getNotionDatabasePropertiesUseCase,

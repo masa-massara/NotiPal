@@ -5,6 +5,13 @@ if [ $? -ne 0 ]; then
   echo "❌ Biome checks failed. Please fix the issues and try committing again."
   exit 1
 fi
+
+echo "🐶 Husky: Generating API types..."
+bun --cwd apps/backend run generate:api-types
+
+# Formatされたファイルや生成された型定義ファイルをステージングする
+git add .
+
 echo "✅ Biome checks passed! Proceeding with commit..."
 
 # mainとdevブランチへのコミットを制限

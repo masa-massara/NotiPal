@@ -99,6 +99,13 @@ app
 	.get("/", (c) => c.text("NotiPal App is running!"));
 
 // --- OpenAPI Docs ---
+app.doc("/specification", {
+	openapi: "3.0.0",
+	info: {
+		version: "1.0.0",
+		title: "NotiPal API",
+	},
+});
 app.get("/doc", swaggerUI({ url: "/specification" }));
 
 export { app };
