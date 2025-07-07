@@ -21,10 +21,8 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useApiClient } from "@/hooks/useApiClient"; // getDestinations に渡すため
-import { getDestinations } from "@/services/destinationService"; // これはuseApiClient経由なので修正不要
-import { deleteTemplate, getTemplates } from "@/services/templateService";
-import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService"; // これはatom経由なので修正不要
+import { apiClient as hc } from "@/lib/apiClient";
+
 import { idTokenAtom } from "@/store/globalAtoms"; // idToken取得のため
 import type {
 	Destination,
@@ -44,19 +42,23 @@ function TemplatesDashboardPage() {
 		string | null
 	>(null);
 	const currentIdToken = useAtomValue(idTokenAtom); // IDトークンを取得
-	const apiClient = useApiClient(); // getDestinations と getUserNotionIntegrations (もし使うなら) のため
 
 	const {
 		data: templates,
 		isLoading: isLoadingTemplates,
 		error: errorTemplates,
-	} = useQuery<Template[], Error>({
+	} = useQuery<Template[] | null, Error>({
 		queryKey: ["templates", currentIdToken], // queryKeyにidTokenを含めて再取得をトリガー
 		queryFn: async () => {
 			if (!currentIdToken) {
 				throw new Error("ID token not available.");
 			}
-			return getTemplates(currentIdToken); // 修正されたサービス関数を呼ぶ
+			const res = await hc.templates.$get();
+			if (!res.ok) {
+				throw new Error("Failed to fetch templates");
+			}
+			const data = await res.json();
+			return data;
 		},
 		enabled: !!currentIdToken, // トークンがある場合のみ実行
 	});
@@ -67,10 +69,14 @@ function TemplatesDashboardPage() {
 	const { data: notionIntegrations } = useQuery<NotionIntegration[], Error>({
 		queryKey: ["notionIntegrations", currentIdToken], // ここも念のため currentIdToken に依存させる
 		queryFn: async () => {
-			// getUserNotionIntegrations も idToken を取るように修正した場合
 			if (!currentIdToken)
 				throw new Error("ID token not available for Notion Integrations.");
-			return getUserNotionIntegrations(currentIdToken);
+			const res = await hc.me["notion-integrations"].$get();
+			if (!res.ok) {
+				throw new Error("Failed to fetch Notion integrations");
+			}
+			const data = await res.json();
+			return data;
 		},
 		enabled: !!currentIdToken,
 		staleTime: Number.POSITIVE_INFINITY,
@@ -79,8 +85,14 @@ function TemplatesDashboardPage() {
 
 	const { data: destinations } = useQuery<Destination[], Error>({
 		queryKey: ["destinations"], // useApiClient を使うので idToken を key に含めなくても良い
-		queryFn: () => getDestinations(apiClient), // useApiClient を使うので修正不要
-		enabled: !!apiClient, // apiClient が利用可能な場合
+		queryFn: async () => {
+			const res = await hc.destinations.$get();
+			if (!res.ok) {
+				throw new Error("Failed to fetch destinations");
+			}
+			const data = await res.json();
+			return data;
+		},
 		staleTime: Number.POSITIVE_INFINITY,
 	});
 
@@ -101,11 +113,15 @@ function TemplatesDashboardPage() {
 
 	const deleteMutation = useMutation({
 		mutationFn: async (templateIdToDelete: string) => {
-			// mutationFn も idToken を使うように
 			if (!currentIdToken) {
 				throw new Error("ID token not available for delete operation.");
 			}
-			return deleteTemplate(currentIdToken, templateIdToDelete);
+			const res = await hc.templates[":id"].$delete({
+				param: { id: templateIdToDelete },
+			});
+			if (!res.ok) {
+				throw new Error("Failed to delete template");
+			}
 		},
 		onSuccess: () => {
 			toast({

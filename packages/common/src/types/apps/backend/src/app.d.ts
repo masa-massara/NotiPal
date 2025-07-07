@@ -116,7 +116,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: any;
+                    value?: unknown;
                 }[];
                 destinationId: string;
             }[];
@@ -140,7 +140,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: any;
+                    value?: unknown;
                 }[];
                 destinationId: string;
             };
@@ -168,7 +168,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: any;
+                    value?: unknown;
                 }[];
                 destinationId: string;
             } | null;
@@ -196,7 +196,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: any;
+                    value?: unknown;
                 }[];
                 destinationId: string;
             };

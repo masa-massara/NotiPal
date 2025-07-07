@@ -12,7 +12,7 @@ import { z } from "zod";
 export const getUserNotionIntegrations = async (): Promise<
 	NotionIntegration[]
 > => {
-	const response = await apiClient["me/notion-integrations"].$get();
+	const response = await apiClient.me["notion-integrations"].$get();
 	const json = await response.json();
 	const validationResult = apiResponseSchema(
 		z.array(userNotionIntegrationSchema),
@@ -40,7 +40,7 @@ export const getUserNotionIntegrations = async (): Promise<
 export const createUserNotionIntegration = async (data: {
 	code: string;
 }): Promise<NotionIntegration> => {
-	const response = await apiClient["me/notion-integrations"].$post({
+	const response = await apiClient.me["notion-integrations"].$post({
 		json: data,
 	});
 	const json = await response.json();
@@ -70,7 +70,7 @@ export const createUserNotionIntegration = async (data: {
 export const deleteUserNotionIntegration = async (
 	integrationId: string,
 ): Promise<void> => {
-	const response = await apiClient["me/notion-integrations"][
+	const response = await apiClient.me["notion-integrations"][
 		":integrationId"
 	].$delete({ param: { integrationId } });
 	if (!response.ok) {

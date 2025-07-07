@@ -4,7 +4,7 @@ import { z } from "zod";
 export const templateConditionSchema = z.object({
 	propertyId: z.string().describe("NotionのプロパティIDまたは名前"),
 	operator: z.string().describe("比較演算子"),
-	value: z.any().optional().describe("比較する値"),
+	value: z.unknown().optional().describe("比較する値"),
 });
 
 // DBやドメインモデルで使う、完全な形のスキーマ

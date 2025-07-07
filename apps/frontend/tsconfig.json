@@ -20,7 +20,8 @@
 		],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@notipal/backend": ["../backend/src/app.ts"]
+			"@notipal/backend": ["../backend/src/app.ts"],
+			"@notipal/common": ["../../packages/common/src"]
 		}
 	},
 	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

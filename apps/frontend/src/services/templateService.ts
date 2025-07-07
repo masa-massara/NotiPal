@@ -94,10 +94,12 @@ export const updateTemplate = async (
 	id: string,
 	data: UpdateTemplateData,
 ): Promise<Template> => {
-	const response = await apiClient.templates[":id"].$put({
-		param: { id },
-		json: data,
-	});
+	const response = await apiClient.templates[":id"].$put(
+		{
+			param: { id },
+		},
+		data as any,
+	);
 	const json = await response.json();
 	const validationResult = apiResponseSchema(templateSchema).safeParse(json);
 	if (!validationResult.success) {

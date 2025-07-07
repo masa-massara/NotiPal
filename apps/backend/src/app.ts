@@ -63,25 +63,20 @@ if (!getApps().length) {
 const firestoreInstance = getFirestore();
 const useCases = initializeFirestoreRepositories(firestoreInstance);
 
-const app = new OpenAPIHono<{ Variables: { userId: string } }>();
-
-app.use(
-	"*",
-	cors({
-		origin: [
-			"http://localhost:3000",
-			"http://localhost:3001",
-			"https://notipal-frontend-service-937400838385.asia-northeast1.run.app",
-		],
-		allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-		allowHeaders: ["Content-Type", "Authorization"],
-		credentials: true,
-	}),
-);
-
-// --- ルーティング定義 ---
-const apiV1 = new OpenAPIHono<{ Variables: { userId: string } }>()
-	// Middleware
+const app = new OpenAPIHono<{ Variables: { userId: string } }>()
+	.use(
+		"*",
+		cors({
+			origin: [
+				"http://localhost:3000",
+				"http://localhost:3001",
+				"https://notipal-frontend-service-937400838385.asia-northeast1.run.app",
+			],
+			allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+			allowHeaders: ["Content-Type", "Authorization"],
+			credentials: true,
+		}),
+	)
 	.use("/destinations*", authMiddleware)
 	.use("/templates*", authMiddleware)
 	.use("/me/notion-integrations*", authMiddleware)
@@ -90,24 +85,21 @@ const apiV1 = new OpenAPIHono<{ Variables: { userId: string } }>()
 	.route("/destinations", createDestinationRoutes(useCases))
 	.route("/templates", createTemplateRoutes(useCases))
 	.route("/me/notion-integrations", createUserNotionIntegrationRoutes(useCases))
-	.route("/notion-databases", createNotionDatabaseRoutes(useCases));
-
-app
-	.route("/api/v1", apiV1)
+	.route("/notion-databases", createNotionDatabaseRoutes(useCases))
 	.route("/webhooks", createWebhookRoutes(useCases))
-	// Root Endpoint
 	.get("/", (c) => c.text("NotiPal App is running!"));
 
 // --- OpenAPI Docs ---
-app.doc("/specification", {
-	openapi: "3.0.0",
-	info: {
-		version: "1.0.0",
-		title: "NotiPal API",
-	},
-});
-app.get("/doc", swaggerUI({ url: "/specification" }));
+// MEMO: createRouteを使ってなかったので一旦コメントアウト、修正後に戻す
+// app.doc("/specification", {
+// 	openapi: "3.0.0",
+// 	info: {
+// 		version: "1.0.0",
+// 		title: "NotiPal API",
+// 	},
+// });
+// app.get("/doc", swaggerUI({ url: "/specification" }));
 
 export { app };
 
-export type AppType = typeof apiV1;
+export type AppType = typeof app;

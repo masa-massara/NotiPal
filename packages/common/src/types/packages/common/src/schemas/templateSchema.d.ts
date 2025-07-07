@@ -2,15 +2,15 @@ import { z } from "zod";
 export declare const templateConditionSchema: z.ZodObject<{
     propertyId: z.ZodString;
     operator: z.ZodString;
-    value: z.ZodOptional<z.ZodAny>;
+    value: z.ZodOptional<z.ZodUnknown>;
 }, "strip", z.ZodTypeAny, {
     propertyId: string;
     operator: string;
-    value?: any;
+    value?: unknown;
 }, {
     propertyId: string;
     operator: string;
-    value?: any;
+    value?: unknown;
 }>;
 export declare const templateSchema: z.ZodObject<{
     id: z.ZodString;
@@ -22,15 +22,15 @@ export declare const templateSchema: z.ZodObject<{
     conditions: z.ZodArray<z.ZodObject<{
         propertyId: z.ZodString;
         operator: z.ZodString;
-        value: z.ZodOptional<z.ZodAny>;
+        value: z.ZodOptional<z.ZodUnknown>;
     }, "strip", z.ZodTypeAny, {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }, {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }>, "many">;
     destinationId: z.ZodString;
     createdAt: z.ZodEffects<z.ZodEffects<z.ZodDate, string, Date>, string, unknown>;
@@ -47,7 +47,7 @@ export declare const templateSchema: z.ZodObject<{
     conditions: {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }[];
     destinationId: string;
 }, {
@@ -60,7 +60,7 @@ export declare const templateSchema: z.ZodObject<{
     conditions: {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }[];
     destinationId: string;
     createdAt?: unknown;
@@ -73,15 +73,15 @@ export declare const createTemplateApiSchema: z.ZodObject<{
     conditions: z.ZodArray<z.ZodObject<{
         propertyId: z.ZodString;
         operator: z.ZodString;
-        value: z.ZodOptional<z.ZodAny>;
+        value: z.ZodOptional<z.ZodUnknown>;
     }, "strip", z.ZodTypeAny, {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }, {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }>, "many">;
     destinationId: z.ZodString;
 } & {
@@ -94,7 +94,7 @@ export declare const createTemplateApiSchema: z.ZodObject<{
     conditions: {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }[];
     destinationId: string;
 }, {
@@ -105,7 +105,7 @@ export declare const createTemplateApiSchema: z.ZodObject<{
     conditions: {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }[];
     destinationId: string;
 }>;
@@ -116,15 +116,15 @@ export declare const updateTemplateApiSchema: z.ZodObject<{
     conditions: z.ZodOptional<z.ZodArray<z.ZodObject<{
         propertyId: z.ZodString;
         operator: z.ZodString;
-        value: z.ZodOptional<z.ZodAny>;
+        value: z.ZodOptional<z.ZodUnknown>;
     }, "strip", z.ZodTypeAny, {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }, {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }>, "many">>;
     destinationId: z.ZodOptional<z.ZodString>;
     userNotionIntegrationId: z.ZodOptional<z.ZodString>;
@@ -136,7 +136,7 @@ export declare const updateTemplateApiSchema: z.ZodObject<{
     conditions?: {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }[] | undefined;
     destinationId?: string | undefined;
 }, {
@@ -147,7 +147,7 @@ export declare const updateTemplateApiSchema: z.ZodObject<{
     conditions?: {
         propertyId: string;
         operator: string;
-        value?: any;
+        value?: unknown;
     }[] | undefined;
     destinationId?: string | undefined;
 }>;

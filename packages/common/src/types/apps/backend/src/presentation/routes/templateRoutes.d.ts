@@ -19,7 +19,7 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: any;
+                    value?: unknown;
                 }[];
                 destinationId: string;
             }[];
@@ -43,7 +43,7 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: any;
+                    value?: unknown;
                 }[];
                 destinationId: string;
             };
@@ -71,7 +71,7 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: any;
+                    value?: unknown;
                 }[];
                 destinationId: string;
             } | null;
@@ -99,7 +99,7 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: any;
+                    value?: unknown;
                 }[];
                 destinationId: string;
             };

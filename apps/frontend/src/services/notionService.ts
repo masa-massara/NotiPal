@@ -1,13 +1,6 @@
 import { apiClient } from "../lib/apiClient";
 
-// MEMO: NotionDatabase, NotionPropertyは一時的な型定義（本来は共通パッケージに移すべき）
-type NotionDatabase = { id: string; name: string };
-type NotionProperty = {
-	id: string;
-	name: string;
-	type: string;
-	options?: { id: string; name: string; color?: string }[];
-};
+import type { NotionDatabase, NotionProperty } from "@notipal/common";
 
 export async function getNotionDatabases(
 	integrationId: string,
@@ -21,7 +14,14 @@ export async function getNotionDatabases(
 	}
 
 	const data = await response.json();
-	return data as NotionDatabase[];
+	// APIレスポンスが配列であることを確認し、NotionDatabase型にマッピング
+	if (Array.isArray(data)) {
+		return (data as NotionDatabase[]).map((db) => ({
+			id: db.id,
+			name: db.name,
+		}));
+	}
+	return []; // 配列でない場合は空の配列を返す
 }
 
 export async function getNotionDatabaseProperties(
@@ -30,14 +30,23 @@ export async function getNotionDatabaseProperties(
 ): Promise<NotionProperty[]> {
 	const response = await apiClient["notion-databases"][":databaseId"][
 		"properties"
-	].$get({ param: { databaseId }, query: { integrationId } });
+	].$get({ param: { databaseId } });
 
 	if (!response.ok) {
 		throw new Error("Failed to fetch Notion database properties");
 	}
 
 	const data = await response.json();
-	return data as NotionProperty[];
+	// APIレスポンスが配列であることを確認し、NotionProperty型にマッピング
+	if (Array.isArray(data)) {
+		return (data as NotionProperty[]).map((prop) => ({
+			id: prop.id,
+			name: prop.name,
+			type: prop.type,
+			options: prop.options,
+		}));
+	}
+	return []; // 配列でない場合は空の配列を返す
 }
 
 // MEMO: NotionDatabase, NotionPropertyのzodスキーマが@notipal/commonに未定義のため、
