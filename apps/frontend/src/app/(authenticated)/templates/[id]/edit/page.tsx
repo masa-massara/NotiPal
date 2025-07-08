@@ -172,6 +172,7 @@ function EditTemplatePage() {
 			if (!selectedNotionIntegrationId || !selectedNotionDatabaseId) return [];
 			const res = await hc["notion-databases"][":databaseId"].properties.$get({
 				param: { databaseId: selectedNotionDatabaseId },
+				query: { integrationId: selectedNotionIntegrationId },
 			});
 			if (!res.ok) {
 				throw new Error("Failed to fetch database properties");
@@ -241,18 +242,16 @@ function EditTemplatePage() {
 			if (!currentIdToken) {
 				throw new Error("ID token not available for updating template.");
 			}
-			const templateUpdateData: UpdateTemplateData = {
+			const templateUpdateData = {
 				...formData,
 				conditions:
 					formData.conditions?.map((c) => ({ ...c, value: c.value ?? "" })) ||
 					[],
 			};
-			const res = await hc.templates[":id"].$put(
-				{
-					param: { id },
-				},
-				templateUpdateData,
-			);
+			const res = await hc.templates[":id"].$put({
+				param: { id },
+				json: templateUpdateData,
+			});
 			if (!res.ok) {
 				throw new Error("Failed to update template");
 			}

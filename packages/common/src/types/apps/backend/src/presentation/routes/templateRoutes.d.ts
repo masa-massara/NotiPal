@@ -1,5 +1,6 @@
+import { OpenAPIHono } from "@hono/zod-openapi";
 import type { InitializedUseCases } from "../../di";
-export declare const createTemplateRoutes: (useCases: InitializedUseCases) => import("hono/hono-base").HonoBase<{
+export declare const createTemplateRoutes: (useCases: InitializedUseCases) => OpenAPIHono<{
     Variables: {
         userId: string;
     };
@@ -19,7 +20,7 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: unknown;
+                    value?: undefined;
                 }[];
                 destinationId: string;
             }[];
@@ -30,7 +31,20 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
 } & {
     "/": {
         $post: {
-            input: {};
+            input: {
+                json: {
+                    name: string;
+                    notionDatabaseId: string;
+                    userNotionIntegrationId: string;
+                    body: string;
+                    conditions: {
+                        propertyId: string;
+                        operator: string;
+                        value?: unknown;
+                    }[];
+                    destinationId: string;
+                };
+            };
             output: {
                 name: string;
                 id: string;
@@ -43,7 +57,7 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: unknown;
+                    value?: undefined;
                 }[];
                 destinationId: string;
             };
@@ -71,12 +85,12 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: unknown;
+                    value?: undefined;
                 }[];
                 destinationId: string;
-            } | null;
+            };
             outputFormat: "json";
-            status: 404 | 200;
+            status: 200;
         };
     };
 } & {
@@ -85,6 +99,19 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
             input: {
                 param: {
                     id: string;
+                };
+            } & {
+                json: {
+                    name?: string | undefined;
+                    notionDatabaseId?: string | undefined;
+                    userNotionIntegrationId?: string | undefined;
+                    body?: string | undefined;
+                    conditions?: {
+                        propertyId: string;
+                        operator: string;
+                        value?: unknown;
+                    }[] | undefined;
+                    destinationId?: string | undefined;
                 };
             };
             output: {
@@ -99,12 +126,12 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: unknown;
+                    value?: undefined;
                 }[];
                 destinationId: string;
             };
             outputFormat: "json";
-            status: 404 | 200;
+            status: 200;
         };
     };
 } & {
@@ -115,9 +142,9 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => im
                     id: string;
                 };
             };
-            output: null;
-            outputFormat: "body";
-            status: 404 | 204;
+            output: {};
+            outputFormat: string;
+            status: 204;
         };
     };
 }, "/">;

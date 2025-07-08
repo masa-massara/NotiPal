@@ -100,12 +100,10 @@ export const updateDestination = async (
 	id: string,
 	data: { name?: string; webhookUrl: string },
 ): Promise<Destination> => {
-	const response = await apiClient.destinations[":id"].$put(
-		{
-			param: { id },
-		},
-		data as any,
-	);
+	const response = await apiClient.destinations[":id"].$put({
+		param: { id },
+		json: data,
+	});
 	if (!response.ok) {
 		throw new Error(`Failed to update destination with ID ${id}`);
 	}

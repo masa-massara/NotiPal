@@ -1,12 +1,46 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
+import { OpenAPIHono, createRoute } from "@hono/zod-openapi";
+import { z } from "zod";
 import type { InitializedUseCases } from "../../di";
-import { notionWebhookHandlerFactory } from "../handlers/notionWebhookHandler";
+import { notionWebhookHandler } from "../handlers/notionWebhookHandler";
+
+const notionWebhookRoute = createRoute({
+	method: "post",
+	path: "/notion",
+	request: {
+		body: {
+			content: { "application/json": { schema: z.unknown() } },
+		},
+	},
+	responses: {
+		200: {
+			description: "Webhook processed successfully",
+			content: {
+				"application/json": {
+					schema: z.object({
+						message: z.string(),
+					}),
+				},
+			},
+		},
+		500: {
+			description: "Internal server error",
+			content: {
+				"application/json": {
+					schema: z.object({
+						error: z.string(),
+						details: z.string(),
+					}),
+				},
+			},
+		},
+	},
+});
 
 export const createWebhookRoutes = (useCases: InitializedUseCases) => {
-	const webhookRoutes = new OpenAPIHono().post(
-		"/notion",
-		notionWebhookHandlerFactory(useCases.processNotionWebhookUseCase),
-	);
+	const webhookRoutes = new OpenAPIHono().openapi(notionWebhookRoute, (c) => {
+		const result = notionWebhookHandler(c, useCases);
+		return result;
+	});
 
 	return webhookRoutes;
 };

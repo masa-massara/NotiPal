@@ -1,5 +1,6 @@
+import { OpenAPIHono } from "@hono/zod-openapi";
 import type { InitializedUseCases } from "../../di";
-export declare const createDestinationRoutes: (useCases: InitializedUseCases) => import("hono/hono-base").HonoBase<{
+export declare const createDestinationRoutes: (useCases: InitializedUseCases) => OpenAPIHono<{
     Variables: {
         userId: string;
     };
@@ -16,13 +17,18 @@ export declare const createDestinationRoutes: (useCases: InitializedUseCases) =>
                 name?: string | undefined;
             }[];
             outputFormat: "json";
-            status: import("hono/utils/http-status").ContentfulStatusCode;
+            status: 200;
         };
     };
 } & {
     "/": {
         $post: {
-            input: {};
+            input: {
+                json: {
+                    webhookUrl: string;
+                    name?: string | undefined;
+                };
+            };
             output: {
                 id: string;
                 userId: string;
@@ -52,7 +58,7 @@ export declare const createDestinationRoutes: (useCases: InitializedUseCases) =>
                 name?: string | undefined;
             };
             outputFormat: "json";
-            status: import("hono/utils/http-status").ContentfulStatusCode;
+            status: 200;
         };
     };
 } & {
@@ -61,6 +67,11 @@ export declare const createDestinationRoutes: (useCases: InitializedUseCases) =>
             input: {
                 param: {
                     id: string;
+                };
+            } & {
+                json: {
+                    name?: string | undefined;
+                    webhookUrl?: string | undefined;
                 };
             };
             output: {
@@ -72,7 +83,7 @@ export declare const createDestinationRoutes: (useCases: InitializedUseCases) =>
                 name?: string | undefined;
             };
             outputFormat: "json";
-            status: import("hono/utils/http-status").ContentfulStatusCode;
+            status: 200;
         };
     };
 } & {
@@ -83,8 +94,8 @@ export declare const createDestinationRoutes: (useCases: InitializedUseCases) =>
                     id: string;
                 };
             };
-            output: null;
-            outputFormat: "body";
+            output: {};
+            outputFormat: string;
             status: 204;
         };
     };

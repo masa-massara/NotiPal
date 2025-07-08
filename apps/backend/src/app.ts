@@ -64,6 +64,13 @@ const firestoreInstance = getFirestore();
 const useCases = initializeFirestoreRepositories(firestoreInstance);
 
 const app = new OpenAPIHono<{ Variables: { userId: string } }>()
+	.doc("/specification", {
+		openapi: "3.0.0",
+		info: {
+			version: "1.0.0",
+			title: "NotiPal API",
+		},
+	})
 	.use(
 		"*",
 		cors({
@@ -98,7 +105,7 @@ const app = new OpenAPIHono<{ Variables: { userId: string } }>()
 // 		title: "NotiPal API",
 // 	},
 // });
-// app.get("/doc", swaggerUI({ url: "/specification" }));
+app.get("/doc", swaggerUI({ url: "/specification" }));
 
 export { app };
 

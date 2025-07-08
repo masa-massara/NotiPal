@@ -3,7 +3,13 @@
 import PageHeader from "@/components/layout/PageHeader";
 import ConditionValueInput from "@/components/template/ConditionValueInput"; // ★ 作成したコンポーネントをインポート
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -85,14 +91,15 @@ function NewTemplatePage() {
 		queryKey: ["notionIntegrations", currentIdToken],
 		queryFn: async ({ queryKey }) => {
 			const [, currentIdToken] = queryKey;
-			if (!currentIdToken) throw new Error("ID token not available for Notion Integrations.");
+			if (!currentIdToken)
+				throw new Error("ID token not available for Notion Integrations.");
 			const res = await hc.me["notion-integrations"].$get();
 			if (!res.ok) {
 				throw new Error("Failed to fetch Notion integrations");
 			}
 			const data = await res.json();
 			if (Array.isArray(data)) {
-				return data.map((integration: any) => ({
+				return data.map((integration) => ({
 					id: integration.id,
 					userId: integration.userId,
 					createdAt: integration.createdAt,
@@ -104,29 +111,30 @@ function NewTemplatePage() {
 		},
 	});
 
-	const { data: destinations, isLoading: isLoadingDestinations } = useQuery<Destination[], Error>(
-		{
-			queryKey: ["destinations"],
-			queryFn: async () => {
-				const res = await hc.destinations.$get();
-				if (!res.ok) {
-					throw new Error("Failed to fetch destinations");
-				}
-				const data = await res.json();
-				if (Array.isArray(data)) {
-					return data.map((destination: any) => ({
-						id: destination.id,
-						userId: destination.userId,
-						webhookUrl: destination.webhookUrl,
-						createdAt: destination.createdAt,
-						updatedAt: destination.updatedAt,
-						name: destination.name,
-					}));
-				}
-				return [];
-			},
-		}
-	);
+	const { data: destinations, isLoading: isLoadingDestinations } = useQuery<
+		Destination[],
+		Error
+	>({
+		queryKey: ["destinations"],
+		queryFn: async () => {
+			const res = await hc.destinations.$get();
+			if (!res.ok) {
+				throw new Error("Failed to fetch destinations");
+			}
+			const data = await res.json();
+			if (Array.isArray(data)) {
+				return data.map((destination) => ({
+					id: destination.id,
+					userId: destination.userId,
+					webhookUrl: destination.webhookUrl,
+					createdAt: destination.createdAt,
+					updatedAt: destination.updatedAt,
+					name: destination.name,
+				}));
+			}
+			return [];
+		},
+	});
 
 	const {
 		data: notionDatabases,
@@ -138,7 +146,9 @@ function NewTemplatePage() {
 		queryFn: async ({ queryKey }) => {
 			const [, integrationIdFromQueryKey] = queryKey; // Use a new variable name
 			if (!integrationIdFromQueryKey) return [];
-			const res = await hc.me["notion-integrations"][":integrationId"].databases.$get({
+			const res = await hc.me["notion-integrations"][
+				":integrationId"
+			].databases.$get({
 				param: { integrationId: integrationIdFromQueryKey as string }, // Use the correct variable
 			});
 			if (!res.ok) {
@@ -163,7 +173,7 @@ function NewTemplatePage() {
 		if (errorNotionDatabases) {
 			console.error(
 				"【FE Log 5.4】Notionデータベース一覧取得エラー (error):",
-				errorNotionDatabases
+				errorNotionDatabases,
 			);
 		}
 	}, [errorNotionDatabases]);
@@ -173,18 +183,23 @@ function NewTemplatePage() {
 		isLoading: isLoadingDbProperties,
 		error: errorDbProperties,
 	} = useQuery<NotionProperty[], Error>({
-		queryKey: ["databaseProperties", selectedNotionIntegrationId, selectedNotionDatabaseId],
+		queryKey: [
+			"databaseProperties",
+			selectedNotionIntegrationId,
+			selectedNotionDatabaseId,
+		],
 		queryFn: async () => {
 			if (!selectedNotionIntegrationId || !selectedNotionDatabaseId) return [];
 			const res = await hc["notion-databases"][":databaseId"].properties.$get({
 				param: { databaseId: selectedNotionDatabaseId },
+				query: { integrationId: selectedNotionIntegrationId },
 			});
 			if (!res.ok) {
 				throw new Error("Failed to fetch database properties");
 			}
 			const data = await res.json();
 			if (Array.isArray(data)) {
-				return (data as any[]).map((prop: any) => ({
+				return (data as NotionProperty[]).map((prop) => ({
 					id: prop.id,
 					name: prop.name,
 					type: prop.type,
@@ -202,7 +217,7 @@ function NewTemplatePage() {
 				shouldValidate: true,
 			});
 		},
-		[setValue]
+		[setValue],
 	);
 
 	useEffect(() => {
@@ -225,7 +240,9 @@ function NewTemplatePage() {
 			}
 			const templateData: CreateTemplateData = {
 				...formData,
-				conditions: formData.conditions?.map((c) => ({ ...c, value: c.value ?? "" })) || [],
+				conditions:
+					formData.conditions?.map((c) => ({ ...c, value: c.value ?? "" })) ||
+					[],
 			};
 			const res = await hc.templates.$post({ json: templateData });
 			if (!res.ok) {
@@ -271,11 +288,15 @@ function NewTemplatePage() {
 								placeholder="e.g., New Task Assigned Notification"
 								{...register("name")}
 							/>
-							{typeof errors.name?.message === "string" ? errors.name.message : ""}
+							{typeof errors.name?.message === "string"
+								? errors.name.message
+								: ""}
 						</div>
 
 						<div className="space-y-2">
-							<Label htmlFor="userNotionIntegrationId">Use Notion Integration</Label>
+							<Label htmlFor="userNotionIntegrationId">
+								Use Notion Integration
+							</Label>
 							<Controller
 								name="userNotionIntegrationId"
 								control={control}
@@ -343,9 +364,9 @@ function NewTemplatePage() {
 													!selectedNotionIntegrationId
 														? "Select a Notion Integration first"
 														: isLoadingNotionDatabases ||
-														  isFetchingNotionDatabases
-														? "Loading databases..."
-														: "Select a Notion Database"
+																isFetchingNotionDatabases
+															? "Loading databases..."
+															: "Select a Notion Database"
 												}
 											/>
 										</SelectTrigger>
@@ -357,32 +378,27 @@ function NewTemplatePage() {
 												// console.log("【FE Log 6.2】errorNotionDatabases:", errorNotionDatabases);
 												return null;
 											})()}
-											{isLoadingNotionDatabases ||
-											isFetchingNotionDatabases ? (
+											{isLoadingNotionDatabases || isFetchingNotionDatabases ? (
 												<SelectItem value="loading-db" disabled>
 													Loading databases...
 												</SelectItem>
 											) : errorNotionDatabases ? (
 												<SelectItem value="error-db" disabled>
 													Error fetching databases:{" "}
-													{typeof errorNotionDatabases.message ===
-													"string"
+													{typeof errorNotionDatabases.message === "string"
 														? errorNotionDatabases.message
 														: ""}
 												</SelectItem>
 											) : !isLoadingNotionDatabases &&
-											  notionDatabases &&
-											  notionDatabases.length === 0 &&
-											  selectedNotionIntegrationId ? (
+												notionDatabases &&
+												notionDatabases.length === 0 &&
+												selectedNotionIntegrationId ? (
 												<SelectItem value="no-db" disabled>
 													No databases found for this integration.
 												</SelectItem>
 											) : (
 												notionDatabases?.map((database) => (
-													<SelectItem
-														key={database.id}
-														value={database.id}
-													>
+													<SelectItem key={database.id} value={database.id}>
 														{database.name} (ID: {database.id})
 													</SelectItem>
 												))
@@ -390,10 +406,7 @@ function NewTemplatePage() {
 											{!selectedNotionIntegrationId &&
 												!isLoadingNotionDatabases &&
 												!isFetchingNotionDatabases && (
-													<SelectItem
-														value="select-integration-first"
-														disabled
-													>
+													<SelectItem value="select-integration-first" disabled>
 														Select a Notion Integration first
 													</SelectItem>
 												)}
@@ -422,11 +435,17 @@ function NewTemplatePage() {
 						{isLoadingDbProperties && selectedNotionDatabaseId && (
 							<p>Loading properties...</p>
 						)}
-						{errorDbProperties && typeof errorDbProperties.message === "string" && (
-							<p className="text-red-600 text-sm">{errorDbProperties.message}</p>
-						)}
+						{errorDbProperties &&
+							typeof errorDbProperties.message === "string" && (
+								<p className="text-red-600 text-sm">
+									{errorDbProperties.message}
+								</p>
+							)}
 						{!isLoadingDbProperties &&
-							!(errorDbProperties && typeof errorDbProperties.message === "string") &&
+							!(
+								errorDbProperties &&
+								typeof errorDbProperties.message === "string"
+							) &&
 							selectedNotionDatabaseId &&
 							(!databaseProperties || databaseProperties.length === 0) && (
 								<p className="text-muted-foreground text-sm">
@@ -439,7 +458,7 @@ function NewTemplatePage() {
 						{fields.map((field, index) => {
 							const selectedPropertyId = watchedConditions?.[index]?.propertyId;
 							const currentProperty = databaseProperties?.find(
-								(p) => p.id === selectedPropertyId
+								(p) => p.id === selectedPropertyId,
 							);
 
 							return (
@@ -474,10 +493,7 @@ function NewTemplatePage() {
 														</SelectTrigger>
 														<SelectContent>
 															{databaseProperties?.map((prop) => (
-																<SelectItem
-																	key={prop.id}
-																	value={prop.id}
-																>
+																<SelectItem key={prop.id} value={prop.id}>
 																	{prop.name}{" "}
 																	<span className="text-muted-foreground text-xs">
 																		({prop.type})
@@ -488,10 +504,7 @@ function NewTemplatePage() {
 																databaseProperties.length === 0) &&
 																selectedNotionDatabaseId &&
 																!isLoadingDbProperties && (
-																	<SelectItem
-																		value="no-props"
-																		disabled
-																	>
+																	<SelectItem value="no-props" disabled>
 																		No properties available
 																	</SelectItem>
 																)}
@@ -518,31 +531,22 @@ function NewTemplatePage() {
 													<Select
 														onValueChange={controllerField.onChange}
 														value={controllerField.value}
-														disabled={
-															mutation.isPending ||
-															!selectedPropertyId
-														}
+														disabled={mutation.isPending || !selectedPropertyId}
 													>
 														<SelectTrigger>
 															<SelectValue placeholder="Select operator" />
 														</SelectTrigger>
 														<SelectContent>
 															{/* TODO: Dynamically filter operators based on property type */}
-															<SelectItem value="equals">
-																Equals
-															</SelectItem>
+															<SelectItem value="equals">Equals</SelectItem>
 															<SelectItem value="not_equals">
 																Not Equals
 															</SelectItem>
-															<SelectItem value="contains">
-																Contains
-															</SelectItem>
+															<SelectItem value="contains">Contains</SelectItem>
 															<SelectItem value="not_contains">
 																Does Not Contain
 															</SelectItem>
-															<SelectItem value="is_empty">
-																Is Empty
-															</SelectItem>
+															<SelectItem value="is_empty">Is Empty</SelectItem>
 															<SelectItem value="is_not_empty">
 																Is Not Empty
 															</SelectItem>
@@ -562,8 +566,8 @@ function NewTemplatePage() {
 													</Select>
 												)}
 											/>
-											{typeof errors.conditions?.[index]?.operator
-												?.message === "string" && (
+											{typeof errors.conditions?.[index]?.operator?.message ===
+												"string" && (
 												<p className="mt-1 text-red-600 text-xs">
 													{errors.conditions[index]?.operator?.message}
 												</p>
@@ -571,9 +575,7 @@ function NewTemplatePage() {
 										</div>
 
 										<div className="space-y-1">
-											<Label htmlFor={`conditions.${index}.value`}>
-												Value
-											</Label>
+											<Label htmlFor={`conditions.${index}.value`}>Value</Label>
 											<ConditionValueInput
 												control={control}
 												conditionIndex={index}
@@ -583,7 +585,7 @@ function NewTemplatePage() {
 													!selectedPropertyId ||
 													!watchedConditions?.[index]?.operator ||
 													["is_empty", "is_not_empty"].includes(
-														watchedConditions?.[index]?.operator ?? ""
+														watchedConditions?.[index]?.operator ?? "",
 													)
 												}
 											/>
@@ -610,7 +612,9 @@ function NewTemplatePage() {
 						})}
 						<Button
 							type="button"
-							onClick={() => append({ propertyId: "", operator: "", value: "" })}
+							onClick={() =>
+								append({ propertyId: "", operator: "", value: "" })
+							}
 							disabled={
 								!selectedNotionDatabaseId ||
 								isLoadingDbProperties ||
@@ -651,13 +655,19 @@ function NewTemplatePage() {
 						)}
 						<p className="text-muted-foreground text-xs">
 							Use placeholders like{" "}
-							<code className="bg-muted px-1 py-0.5 rounded">{"{PropertyName}"}</code>{" "}
+							<code className="bg-muted px-1 py-0.5 rounded">
+								{"{PropertyName}"}
+							</code>{" "}
 							(e.g.,{" "}
-							<code className="bg-muted px-1 py-0.5 rounded">{"{Task Name}"}</code>)
-							for Notion page properties, and{" "}
-							<code className="bg-muted px-1 py-0.5 rounded">{"{_pageUrl}"}</code> for
-							the page URL. Placeholders are case-sensitive and should match your
-							Notion property names exactly.
+							<code className="bg-muted px-1 py-0.5 rounded">
+								{"{Task Name}"}
+							</code>
+							) for Notion page properties, and{" "}
+							<code className="bg-muted px-1 py-0.5 rounded">
+								{"{_pageUrl}"}
+							</code>{" "}
+							for the page URL. Placeholders are case-sensitive and should match
+							your Notion property names exactly.
 						</p>
 					</CardContent>
 				</Card>
@@ -687,22 +697,17 @@ function NewTemplatePage() {
 											</SelectItem>
 										) : (
 											destinations?.map((destination) => (
-												<SelectItem
-													key={destination.id}
-													value={destination.id}
-												>
+												<SelectItem key={destination.id} value={destination.id}>
 													{destination.name ||
 														// biome-ignore lint/style/useTemplate: <explanation>
-														destination.webhookUrl.substring(0, 40) +
-															"..."}
+														destination.webhookUrl.substring(0, 40) + "..."}
 												</SelectItem>
 											))
 										)}
 										{!isLoadingDestinations &&
 											(!destinations || destinations.length === 0) && (
 												<SelectItem value="no-dest" disabled>
-													No destinations found. Please register one
-													first.
+													No destinations found. Please register one first.
 												</SelectItem>
 											)}
 									</SelectContent>
@@ -710,7 +715,9 @@ function NewTemplatePage() {
 							)}
 						/>
 						{typeof errors.destinationId?.message === "string" && (
-							<p className="text-red-600 text-sm">{errors.destinationId.message}</p>
+							<p className="text-red-600 text-sm">
+								{errors.destinationId.message}
+							</p>
 						)}
 					</CardContent>
 				</Card>
@@ -726,7 +733,9 @@ function NewTemplatePage() {
 						</Button>
 					</Link>
 					<Button type="submit" disabled={isSubmitting || mutation.isPending}>
-						{isSubmitting || mutation.isPending ? "Creating..." : "Create Template"}
+						{isSubmitting || mutation.isPending
+							? "Creating..."
+							: "Create Template"}
 					</Button>
 				</div>
 			</form>

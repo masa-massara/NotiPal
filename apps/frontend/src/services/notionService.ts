@@ -28,9 +28,9 @@ export async function getNotionDatabaseProperties(
 	integrationId: string,
 	databaseId: string,
 ): Promise<NotionProperty[]> {
-	const response = await apiClient["notion-databases"][":databaseId"][
-		"properties"
-	].$get({ param: { databaseId } });
+	const response = await apiClient["notion-databases"][
+		":databaseId"
+	].properties.$get({ param: { databaseId }, query: { integrationId } });
 
 	if (!response.ok) {
 		throw new Error("Failed to fetch Notion database properties");

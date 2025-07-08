@@ -1,11 +1,26 @@
+import { OpenAPIHono } from "@hono/zod-openapi";
 import type { InitializedUseCases } from "../../di";
-export declare const createWebhookRoutes: (useCases: InitializedUseCases) => import("hono/hono-base").HonoBase<import("hono").Env, {
+export declare const createWebhookRoutes: (useCases: InitializedUseCases) => OpenAPIHono<import("hono").Env, {
     "/notion": {
         $post: {
-            input: {};
-            output: {};
-            outputFormat: string;
-            status: import("hono/utils/http-status").StatusCode;
+            input: {
+                json: unknown;
+            };
+            output: {
+                error: string;
+                details: string;
+            };
+            outputFormat: "json";
+            status: 500;
+        } | {
+            input: {
+                json: unknown;
+            };
+            output: {
+                message: string;
+            };
+            outputFormat: "json";
+            status: 200;
         };
     };
 }, "/">;

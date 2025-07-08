@@ -1,19 +1,13 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
 declare module "hono" {
     interface ContextVariableMap {
         userId: string;
     }
 }
-declare const app: OpenAPIHono<{
+declare const app: import("hono/hono-base").HonoBase<{
     Variables: {
         userId: string;
     };
-}, {}, "/">;
-declare const apiV1: import("hono/hono-base").HonoBase<{
-    Variables: {
-        userId: string;
-    };
-}, {
+}, ({
     "/notion-databases*": {};
 } | import("hono/types").MergeSchemaPath<{
     "/": {
@@ -28,13 +22,18 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 name?: string | undefined;
             }[];
             outputFormat: "json";
-            status: import("hono/utils/http-status").ContentfulStatusCode;
+            status: 200;
         };
     };
 } & {
     "/": {
         $post: {
-            input: {};
+            input: {
+                json: {
+                    webhookUrl: string;
+                    name?: string | undefined;
+                };
+            };
             output: {
                 id: string;
                 userId: string;
@@ -64,7 +63,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 name?: string | undefined;
             };
             outputFormat: "json";
-            status: import("hono/utils/http-status").ContentfulStatusCode;
+            status: 200;
         };
     };
 } & {
@@ -73,6 +72,11 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
             input: {
                 param: {
                     id: string;
+                };
+            } & {
+                json: {
+                    name?: string | undefined;
+                    webhookUrl?: string | undefined;
                 };
             };
             output: {
@@ -84,7 +88,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 name?: string | undefined;
             };
             outputFormat: "json";
-            status: import("hono/utils/http-status").ContentfulStatusCode;
+            status: 200;
         };
     };
 } & {
@@ -95,8 +99,8 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                     id: string;
                 };
             };
-            output: null;
-            outputFormat: "body";
+            output: {};
+            outputFormat: string;
             status: 204;
         };
     };
@@ -116,7 +120,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: unknown;
+                    value?: undefined;
                 }[];
                 destinationId: string;
             }[];
@@ -127,7 +131,20 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
 } & {
     "/": {
         $post: {
-            input: {};
+            input: {
+                json: {
+                    name: string;
+                    notionDatabaseId: string;
+                    userNotionIntegrationId: string;
+                    body: string;
+                    conditions: {
+                        propertyId: string;
+                        operator: string;
+                        value?: unknown;
+                    }[];
+                    destinationId: string;
+                };
+            };
             output: {
                 name: string;
                 id: string;
@@ -140,7 +157,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: unknown;
+                    value?: undefined;
                 }[];
                 destinationId: string;
             };
@@ -168,12 +185,12 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: unknown;
+                    value?: undefined;
                 }[];
                 destinationId: string;
-            } | null;
+            };
             outputFormat: "json";
-            status: 404 | 200;
+            status: 200;
         };
     };
 } & {
@@ -182,6 +199,19 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
             input: {
                 param: {
                     id: string;
+                };
+            } & {
+                json: {
+                    name?: string | undefined;
+                    notionDatabaseId?: string | undefined;
+                    userNotionIntegrationId?: string | undefined;
+                    body?: string | undefined;
+                    conditions?: {
+                        propertyId: string;
+                        operator: string;
+                        value?: unknown;
+                    }[] | undefined;
+                    destinationId?: string | undefined;
                 };
             };
             output: {
@@ -196,12 +226,12 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 conditions: {
                     propertyId: string;
                     operator: string;
-                    value?: unknown;
+                    value?: undefined;
                 }[];
                 destinationId: string;
             };
             outputFormat: "json";
-            status: 404 | 200;
+            status: 200;
         };
     };
 } & {
@@ -212,15 +242,20 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                     id: string;
                 };
             };
-            output: null;
-            outputFormat: "body";
-            status: 404 | 204;
+            output: {};
+            outputFormat: string;
+            status: 204;
         };
     };
 }, "/templates"> | import("hono/types").MergeSchemaPath<{
     "/": {
         $post: {
-            input: {};
+            input: {
+                json: {
+                    integrationName: string;
+                    notionIntegrationToken: string;
+                };
+            };
             output: {
                 id: string;
                 userId: string;
@@ -244,7 +279,7 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 integrationName: string;
             }[];
             outputFormat: "json";
-            status: import("hono/utils/http-status").ContentfulStatusCode;
+            status: 200;
         };
     };
 } & {
@@ -255,8 +290,8 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                     integrationId: string;
                 };
             };
-            output: null;
-            outputFormat: "body";
+            output: {};
+            outputFormat: string;
             status: 204;
         };
     };
@@ -269,93 +304,21 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 };
             };
             output: {
-                [x: number]: {
-                    id: string;
-                    name: string;
-                };
-                length: number;
-                toString: null;
-                toLocaleString: null;
-                pop: null;
-                push: {};
-                concat: {};
-                join: {};
-                reverse: null;
-                shift: null;
-                slice: {};
-                sort: {};
-                splice: {};
-                unshift: {};
-                indexOf: {};
-                lastIndexOf: {};
-                every: {};
-                some: {};
-                forEach: {};
-                map: {};
-                filter: {};
-                reduce: {};
-                reduceRight: {};
-                find: {};
-                findIndex: {};
-                fill: {};
-                copyWithin: {};
-                entries: null;
-                keys: null;
-                values: null;
-                includes: {};
-                flatMap: {};
-                flat: {};
-                at: {};
-                findLast: {};
-                findLastIndex: {};
-                toReversed: null;
-                toSorted: {};
-                toSpliced: {};
-                with: {};
-                [Symbol.iterator]: null;
-                readonly [Symbol.unscopables]: {
-                    [x: number]: boolean | undefined;
-                    length?: boolean | undefined;
-                    toString?: boolean | undefined;
-                    toLocaleString?: boolean | undefined;
-                    pop?: boolean | undefined;
-                    push?: boolean | undefined;
-                    concat?: boolean | undefined;
-                    join?: boolean | undefined;
-                    reverse?: boolean | undefined;
-                    shift?: boolean | undefined;
-                    slice?: boolean | undefined;
-                    sort?: boolean | undefined;
-                    splice?: boolean | undefined;
-                    unshift?: boolean | undefined;
-                    indexOf?: boolean | undefined;
-                    lastIndexOf?: boolean | undefined;
-                    every?: boolean | undefined;
-                    some?: boolean | undefined;
-                    forEach?: boolean | undefined;
-                    map?: boolean | undefined;
-                    filter?: boolean | undefined;
-                    reduce?: boolean | undefined;
-                    reduceRight?: boolean | undefined;
-                    find?: boolean | undefined;
-                    findIndex?: boolean | undefined;
-                    fill?: boolean | undefined;
-                    copyWithin?: boolean | undefined;
-                    entries?: boolean | undefined;
-                    keys?: boolean | undefined;
-                    values?: boolean | undefined;
-                    includes?: boolean | undefined;
-                    flatMap?: boolean | undefined;
-                    flat?: boolean | undefined;
-                    at?: boolean | undefined;
-                    findLast?: boolean | undefined;
-                    findLastIndex?: boolean | undefined;
-                    toReversed?: boolean | undefined;
-                    toSorted?: boolean | undefined;
-                    toSpliced?: boolean | undefined;
-                    with?: boolean | undefined;
+                error: string;
+                details: string;
+            };
+            outputFormat: "json";
+            status: 500;
+        } | {
+            input: {
+                param: {
+                    integrationId: string;
                 };
             };
+            output: {
+                name: string;
+                id: string;
+            }[];
             outputFormat: "json";
             status: 200;
         };
@@ -367,105 +330,57 @@ declare const apiV1: import("hono/hono-base").HonoBase<{
                 param: {
                     databaseId: string;
                 };
+            } & {
+                query: {
+                    integrationId: string;
+                };
             };
             output: {
-                [x: number]: {
-                    id: string;
+                type: string;
+                name: string;
+                id: string;
+                options?: {
                     name: string;
-                    type: string;
-                    options?: {
-                        id: string;
-                        name: string;
-                        color?: string | undefined;
-                    }[] | undefined;
-                };
-                length: number;
-                toString: null;
-                toLocaleString: null;
-                pop: null;
-                push: {};
-                concat: {};
-                join: {};
-                reverse: null;
-                shift: null;
-                slice: {};
-                sort: {};
-                splice: {};
-                unshift: {};
-                indexOf: {};
-                lastIndexOf: {};
-                every: {};
-                some: {};
-                forEach: {};
-                map: {};
-                filter: {};
-                reduce: {};
-                reduceRight: {};
-                find: {};
-                findIndex: {};
-                fill: {};
-                copyWithin: {};
-                entries: null;
-                keys: null;
-                values: null;
-                includes: {};
-                flatMap: {};
-                flat: {};
-                at: {};
-                findLast: {};
-                findLastIndex: {};
-                toReversed: null;
-                toSorted: {};
-                toSpliced: {};
-                with: {};
-                [Symbol.iterator]: null;
-                readonly [Symbol.unscopables]: {
-                    [x: number]: boolean | undefined;
-                    length?: boolean | undefined;
-                    toString?: boolean | undefined;
-                    toLocaleString?: boolean | undefined;
-                    pop?: boolean | undefined;
-                    push?: boolean | undefined;
-                    concat?: boolean | undefined;
-                    join?: boolean | undefined;
-                    reverse?: boolean | undefined;
-                    shift?: boolean | undefined;
-                    slice?: boolean | undefined;
-                    sort?: boolean | undefined;
-                    splice?: boolean | undefined;
-                    unshift?: boolean | undefined;
-                    indexOf?: boolean | undefined;
-                    lastIndexOf?: boolean | undefined;
-                    every?: boolean | undefined;
-                    some?: boolean | undefined;
-                    forEach?: boolean | undefined;
-                    map?: boolean | undefined;
-                    filter?: boolean | undefined;
-                    reduce?: boolean | undefined;
-                    reduceRight?: boolean | undefined;
-                    find?: boolean | undefined;
-                    findIndex?: boolean | undefined;
-                    fill?: boolean | undefined;
-                    copyWithin?: boolean | undefined;
-                    entries?: boolean | undefined;
-                    keys?: boolean | undefined;
-                    values?: boolean | undefined;
-                    includes?: boolean | undefined;
-                    flatMap?: boolean | undefined;
-                    flat?: boolean | undefined;
-                    at?: boolean | undefined;
-                    findLast?: boolean | undefined;
-                    findLastIndex?: boolean | undefined;
-                    toReversed?: boolean | undefined;
-                    toSorted?: boolean | undefined;
-                    toSpliced?: boolean | undefined;
-                    with?: boolean | undefined;
-                };
+                    id: string;
+                    color?: string | undefined;
+                }[] | undefined;
+            }[];
+            outputFormat: "json";
+            status: 200;
+        };
+    };
+}, "/notion-databases"> | import("hono/types").MergeSchemaPath<{
+    "/notion": {
+        $post: {
+            input: {
+                json: unknown;
+            };
+            output: {
+                error: string;
+                details: string;
+            };
+            outputFormat: "json";
+            status: 500;
+        } | {
+            input: {
+                json: unknown;
+            };
+            output: {
+                message: string;
             };
             outputFormat: "json";
             status: 200;
         };
     };
-}, "/notion-databases">, "/">;
+}, "/webhooks">) & {
+    "/": {
+        $get: {
+            input: {};
+            output: "NotiPal App is running!";
+            outputFormat: "text";
+            status: import("hono/utils/http-status").ContentfulStatusCode;
+        };
+    };
+}, "/">;
 export { app };
-export type AppType = typeof apiV1;
+export type AppType = typeof app;
