@@ -18,6 +18,8 @@ import {
 const listTemplatesRoute = createRoute({
 	method: "get",
 	path: "/",
+	tags: ["Templates"],
+	description: "ユーザーのすべてのテンプレートリストを取得します。",
 	responses: {
 		200: {
 			description: "List of templates",
@@ -33,6 +35,8 @@ const listTemplatesRoute = createRoute({
 const createTemplateRoute = createRoute({
 	method: "post",
 	path: "/",
+	tags: ["Templates"],
+	description: "新しいテンプレートを作成します。",
 	request: {
 		body: {
 			content: {
@@ -57,6 +61,8 @@ const createTemplateRoute = createRoute({
 const getTemplateRoute = createRoute({
 	method: "get",
 	path: "/:id",
+	tags: ["Templates"],
+	description: "IDで特定のテンプレートを取得します。",
 	request: {
 		params: z.object({ id: z.string() }),
 	},
@@ -75,6 +81,8 @@ const getTemplateRoute = createRoute({
 const updateTemplateRoute = createRoute({
 	method: "put",
 	path: "/:id",
+	tags: ["Templates"],
+	description: "IDで特定のテンプレートを更新します。",
 	request: {
 		params: z.object({ id: z.string() }),
 		body: {
@@ -100,6 +108,8 @@ const updateTemplateRoute = createRoute({
 const deleteTemplateRoute = createRoute({
 	method: "delete",
 	path: "/:id",
+	tags: ["Templates"],
+	description: "IDで特定のテンプレートを削除します。",
 	request: {
 		params: z.object({ id: z.string() }),
 	},

@@ -6,6 +6,8 @@ import { notionWebhookHandler } from "../handlers/notionWebhookHandler";
 const notionWebhookRoute = createRoute({
 	method: "post",
 	path: "/notion",
+	tags: ["Webhooks"],
+	description: "Notionからの受信Webhookを処理します。",
 	request: {
 		body: {
 			content: { "application/json": { schema: z.unknown() } },

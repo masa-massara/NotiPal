@@ -17,6 +17,8 @@ import {
 const createIntegrationRoute = createRoute({
 	method: "post",
 	path: "/",
+	tags: ["User Notion Integrations"],
+	description: "ユーザーの新しいNotionインテグレーションを作成します。",
 	request: {
 		body: {
 			content: {
@@ -41,6 +43,9 @@ const createIntegrationRoute = createRoute({
 const listIntegrationsRoute = createRoute({
 	method: "get",
 	path: "/",
+	tags: ["User Notion Integrations"],
+	description:
+		"ユーザーのすべてのNotionインテグレーションのリストを取得します。",
 	responses: {
 		200: {
 			description: "List of Notion integrations",
@@ -56,6 +61,8 @@ const listIntegrationsRoute = createRoute({
 const deleteIntegrationRoute = createRoute({
 	method: "delete",
 	path: "/:integrationId",
+	tags: ["User Notion Integrations"],
+	description: "IDで特定のNotionインテグレーションを削除します。",
 	request: {
 		params: z.object({ integrationId: z.string() }),
 	},
@@ -69,6 +76,9 @@ const deleteIntegrationRoute = createRoute({
 const listDatabasesRoute = createRoute({
 	method: "get",
 	path: "/:integrationId/databases",
+	tags: ["User Notion Integrations"],
+	description:
+		"特定のインテグレーションがアクセスできるNotionデータベースのリストを取得します。",
 	request: {
 		params: z.object({ integrationId: z.string() }),
 	},

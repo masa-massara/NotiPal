@@ -7,6 +7,8 @@ import { getNotionDatabasePropertiesHandler } from "../handlers/notionDatabaseHa
 const getPropertiesRoute = createRoute({
 	method: "get",
 	path: "/:databaseId/properties",
+	tags: ["Notion Databases"],
+	description: "特定のNotionデータベースのプロパティリストを取得します。",
 	request: {
 		params: z.object({ databaseId: z.string() }),
 		query: z.object({ integrationId: z.string() }),

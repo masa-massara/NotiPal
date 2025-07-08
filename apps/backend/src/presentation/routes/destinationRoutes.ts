@@ -18,6 +18,8 @@ import {
 const listDestinationsRoute = createRoute({
 	method: "get",
 	path: "/",
+	tags: ["Destinations"],
+	description: "ユーザーのすべての宛先リストを取得します。",
 	responses: {
 		200: {
 			description: "List of destinations",
@@ -33,6 +35,8 @@ const listDestinationsRoute = createRoute({
 const createDestinationRoute = createRoute({
 	method: "post",
 	path: "/",
+	tags: ["Destinations"],
+	description: "新しい宛先を作成します。",
 	request: {
 		body: {
 			content: {
@@ -57,6 +61,8 @@ const createDestinationRoute = createRoute({
 const getDestinationRoute = createRoute({
 	method: "get",
 	path: "/:id",
+	tags: ["Destinations"],
+	description: "IDで特定の宛先を取得します。",
 	request: {
 		params: z.object({ id: z.string() }),
 	},
@@ -75,6 +81,8 @@ const getDestinationRoute = createRoute({
 const updateDestinationRoute = createRoute({
 	method: "put",
 	path: "/:id",
+	tags: ["Destinations"],
+	description: "IDで特定の宛先を更新します。",
 	request: {
 		params: z.object({ id: z.string() }),
 		body: {
@@ -100,6 +108,8 @@ const updateDestinationRoute = createRoute({
 const deleteDestinationRoute = createRoute({
 	method: "delete",
 	path: "/:id",
+	tags: ["Destinations"],
+	description: "IDで特定の宛先を削除します。",
 	request: {
 		params: z.object({ id: z.string() }),
 	},
