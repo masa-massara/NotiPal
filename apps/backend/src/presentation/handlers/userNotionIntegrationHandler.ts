@@ -52,7 +52,7 @@ export const listIntegrationsHandler = async (
 		const output = await useCases.listUserNotionIntegrationsUseCaseFn({
 			userId,
 		});
-		return c.json(output, 200);
+		return c.json({ success: true, data: output }, 200);
 	} catch (error: unknown) {
 		if (error instanceof HTTPException) {
 			throw error;
@@ -106,29 +106,16 @@ export const listUserAccessibleDatabasesHandler = async (
 	c: Context,
 	useCases: InitializedUseCases,
 ) => {
-	console.log(
-		"【BE Log 1 at Handler】listUserAccessibleDatabasesHandler - Entry",
-	);
 	try {
 		const integrationId = c.req.param("integrationId");
 		const userId = c.get("userId");
 
-		console.log(
-			`【BE Log 2 at Handler】Integration ID: ${integrationId}, User ID: ${userId}`,
-		);
-
 		if (typeof userId !== "string") {
-			console.error(
-				"【BE Log 2.1 at Handler】CRITICAL: userId not found in context or is not a string after authMiddleware.",
-			);
 			throw new HTTPException(401, {
 				message: "Unauthorized: User ID not found or invalid.",
 			});
 		}
 		if (!integrationId) {
-			console.error(
-				"【BE Log 2.2 at Handler】integrationId path parameter is required.",
-			);
 			throw new HTTPException(400, {
 				message: "integrationId path parameter is required",
 			});
@@ -139,27 +126,15 @@ export const listUserAccessibleDatabasesHandler = async (
 			userId,
 		};
 
-		console.log(
-			"【BE Log 3 at Handler】Calling ListNotionDatabasesUseCase with input:",
-			JSON.stringify(input, null, 2),
-		);
 		const output = await useCases.listNotionDatabasesUseCase(input);
-		console.log(
-			"【BE Log 4 at Handler】ListNotionDatabasesUseCase returned output:",
-			JSON.stringify(output, null, 2),
-		);
 
 		const sanitizedOutput = output.map(({ id, name }) => ({ id, name }));
-		return c.json(sanitizedOutput, 200);
+		return c.json({ success: true, data: sanitizedOutput }, 200);
 	} catch (error: unknown) {
 		if (error instanceof HTTPException) {
 			throw error;
 		}
 		const message = error instanceof Error ? error.message : String(error);
-		console.error(
-			"【BE Log 5 at Handler】Error in listUserAccessibleDatabasesHandler:",
-			message,
-		);
 		throw new HTTPException(500, {
 			message: "Failed to list accessible Notion databases",
 			cause: message,

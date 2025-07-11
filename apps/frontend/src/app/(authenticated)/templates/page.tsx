@@ -23,7 +23,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { apiClient as hc } from "@/lib/apiClient";
 
-import { idTokenAtom } from "@/store/globalAtoms"; // idToken取得のため
+import { getDestinations } from "@/services/destinationService";
+import { getTemplates } from "@/services/templateService";
+import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService";
+import { authReadyAtom, idTokenAtom } from "@/store/globalAtoms"; // idToken取得のため
 import type {
 	Destination,
 	UserNotionIntegration as NotionIntegration,
@@ -41,79 +44,54 @@ function TemplatesDashboardPage() {
 	const [selectedTemplateId, setSelectedTemplateId] = React.useState<
 		string | null
 	>(null);
-	const currentIdToken = useAtomValue(idTokenAtom); // IDトークンを取得
 
 	const {
 		data: templates,
 		isLoading: isLoadingTemplates,
 		error: errorTemplates,
 	} = useQuery<Template[] | null, Error>({
-		queryKey: ["templates", currentIdToken], // queryKeyにidTokenを含めて再取得をトリガー
-		queryFn: async () => {
-			if (!currentIdToken) {
-				throw new Error("ID token not available.");
-			}
-			const res = await hc.templates.$get();
-			if (!res.ok) {
-				throw new Error("Failed to fetch templates");
-			}
-			const data = await res.json();
-			return data;
-		},
-		enabled: !!currentIdToken, // トークンがある場合のみ実行
+		queryKey: ["templates"],
+		queryFn: getTemplates,
 	});
 
 	// NotionIntegrations と Destinations はIDトークンに直接依存せず、
 	// useQuery 内で api クライアントや Jotai atom 経由で取得しているので、
 	// ここの queryFn の修正は不要か、または既に userNotionIntegrationAtoms 経由で取得している
 	const { data: notionIntegrations } = useQuery<NotionIntegration[], Error>({
-		queryKey: ["notionIntegrations", currentIdToken], // ここも念のため currentIdToken に依存させる
-		queryFn: async () => {
-			if (!currentIdToken)
-				throw new Error("ID token not available for Notion Integrations.");
-			const res = await hc.me["notion-integrations"].$get();
-			if (!res.ok) {
-				throw new Error("Failed to fetch Notion integrations");
-			}
-			const data = await res.json();
-			return data;
-		},
-		enabled: !!currentIdToken,
+		queryKey: ["notionIntegrations"],
+		queryFn: getUserNotionIntegrations,
 		staleTime: Number.POSITIVE_INFINITY,
 	});
 	// または userNotionIntegrationAtoms.ts で定義された atom を useAtomValue で読む
 
 	const { data: destinations } = useQuery<Destination[], Error>({
-		queryKey: ["destinations"], // useApiClient を使うので idToken を key に含めなくても良い
-		queryFn: async () => {
-			const res = await hc.destinations.$get();
-			if (!res.ok) {
-				throw new Error("Failed to fetch destinations");
-			}
-			const data = await res.json();
-			return data;
-		},
+		queryKey: ["destinations"],
+		queryFn: getDestinations,
 		staleTime: Number.POSITIVE_INFINITY,
 	});
 
 	const notionIntegrationMap = React.useMemo(() => {
-		if (!notionIntegrations) return new Map();
-		return new Map(notionIntegrations.map((ni) => [ni.id, ni.integrationName]));
+		if (!notionIntegrations?.data) return new Map();
+		return new Map(
+			notionIntegrations.data.map((ni) => [ni.id, ni.integrationName]),
+		);
 	}, [notionIntegrations]);
 
 	const destinationMap = React.useMemo(() => {
-		if (!destinations) return new Map();
+		if (!destinations?.data) return new Map();
 		return new Map(
-			destinations.map((d) => [
+			destinations.data.map((d) => [
 				d.id,
 				d.name || `${d.webhookUrl.substring(0, 30)}...`,
 			]),
 		);
 	}, [destinations]);
 
+	const idToken = useAtomValue(idTokenAtom);
+
 	const deleteMutation = useMutation({
 		mutationFn: async (templateIdToDelete: string) => {
-			if (!currentIdToken) {
+			if (!idToken) {
 				throw new Error("ID token not available for delete operation.");
 			}
 			const res = await hc.templates[":id"].$delete({

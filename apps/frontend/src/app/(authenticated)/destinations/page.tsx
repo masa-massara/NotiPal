@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient as hc } from "@/lib/apiClient";
+import { getDestinations } from "@/services/destinationService";
 import type { Destination } from "@notipal/common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -55,14 +56,7 @@ function DestinationsPage() {
 		error,
 	} = useQuery<Destination[], Error>({
 		queryKey: ["destinations"],
-		queryFn: async () => {
-			const res = await hc.destinations.$get();
-			if (!res.ok) {
-				throw new Error("Failed to fetch destinations");
-			}
-			const data = await res.json();
-			return data;
-		},
+		queryFn: getDestinations,
 	});
 
 	const deleteMutation = useMutation({

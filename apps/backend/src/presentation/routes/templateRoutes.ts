@@ -120,10 +120,16 @@ const deleteTemplateRoute = createRoute({
 	},
 });
 
-export const createTemplateRoutes = (useCases: InitializedUseCases) => {
+import type { MiddlewareHandler } from "hono";
+
+export const createTemplateRoutes = (
+	useCases: InitializedUseCases,
+	authMiddleware: MiddlewareHandler,
+) => {
 	const templateRoutes = new OpenAPIHono<{
 		Variables: { userId: string };
 	}>()
+		.use("*", authMiddleware)
 		.openapi(listTemplatesRoute, (c) => {
 			const result = listTemplatesHandler(c, useCases);
 			return result;

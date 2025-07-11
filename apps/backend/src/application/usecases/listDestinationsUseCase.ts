@@ -11,21 +11,11 @@ export interface ListDestinationsInput {
 // ユースケースの出力 (Destinationの配列)
 export type ListDestinationsOutput = DestinationData[];
 
-export const createListDestinationsUseCase = (dependencies: {
+export const createListDestinationsUseCase = (deps: {
 	destinationRepository: DestinationRepository;
 }) => {
-	const { destinationRepository } = dependencies;
-
-	return async (
-		input: ListDestinationsInput,
-	): Promise<ListDestinationsOutput> => {
-		console.log(
-			`ListDestinationsUseCase: Attempting to execute findAll for user ${input.userId}...`,
-		); // ★ ログにuserIdを追加
-		const destinations = await destinationRepository.findAll(input.userId); // ★ findAllにuserIdを渡す
-		console.log(
-			`ListDestinationsUseCase: Found ${destinations.length} destinations for user ${input.userId}.`, // ★ ログにuserIdを追加
-		);
+	return async (input: { userId: string }): Promise<Destination[]> => {
+		const destinations = await deps.destinationRepository.findAll(input.userId);
 		return destinations;
 	};
 };

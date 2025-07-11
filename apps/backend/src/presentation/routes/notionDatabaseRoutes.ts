@@ -25,13 +25,20 @@ const getPropertiesRoute = createRoute({
 	},
 });
 
-export const createNotionDatabaseRoutes = (useCases: InitializedUseCases) => {
+import type { MiddlewareHandler } from "hono";
+
+export const createNotionDatabaseRoutes = (
+	useCases: InitializedUseCases,
+	authMiddleware: MiddlewareHandler,
+) => {
 	const routes = new OpenAPIHono<{
 		Variables: { userId: string };
-	}>().openapi(getPropertiesRoute, (c) => {
-		const result = getNotionDatabasePropertiesHandler(c, useCases);
-		return result;
-	});
+	}>()
+		.use("*", authMiddleware)
+		.openapi(getPropertiesRoute, (c) => {
+			const result = getNotionDatabasePropertiesHandler(c, useCases);
+			return result;
+		});
 
 	return routes;
 };

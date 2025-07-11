@@ -46,7 +46,7 @@ export const listTemplatesHandler = async (
 	try {
 		const userId = c.get("userId");
 		const result = await useCases.listTemplatesUseCase({ userId });
-		return c.json(result, 200);
+		return c.json({ success: true, data: result }, 200);
 	} catch (error: unknown) {
 		throw new HTTPException(500, { message: (error as Error).message });
 	}

@@ -37,7 +37,17 @@ export const createFirestoreDestinationRepository = (
 
 	const findAll = async (userId: string): Promise<DestinationData[]> => {
 		const snapshot = await collection.where("userId", "==", userId).get();
-		return snapshot.docs.map((doc) => destinationSchema.parse(doc.data()));
+		return snapshot.docs.map((doc) => {
+			const data = doc.data();
+			// FirestoreのTimestampをDateオブジェクトに変換
+			if (data.createdAt && typeof data.createdAt.toDate === "function") {
+				data.createdAt = data.createdAt.toDate();
+			}
+			if (data.updatedAt && typeof data.updatedAt.toDate === "function") {
+				data.updatedAt = data.updatedAt.toDate();
+			}
+			return destinationSchema.parse(data);
+		});
 	};
 
 	const deleteById = async (id: string, userId: string): Promise<void> => {

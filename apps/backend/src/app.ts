@@ -1,10 +1,11 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
+import { Auth, getAuth } from "firebase-admin/auth";
 import { getFirestore } from "firebase-admin/firestore";
 import { cors } from "hono/cors";
 import { initializeFirestoreRepositories } from "./di";
-import { authMiddleware } from "./presentation/middleware/authMiddleware";
+import { createAuthMiddleware } from "./presentation/middleware/authMiddleware";
 import { createDestinationRoutes } from "./presentation/routes/destinationRoutes";
 import { createNotionDatabaseRoutes } from "./presentation/routes/notionDatabaseRoutes";
 import { createTemplateRoutes } from "./presentation/routes/templateRoutes";
@@ -62,6 +63,7 @@ if (!getApps().length) {
 // Initialize Firestore repositories after Firebase app is initialized
 const firestoreInstance = getFirestore();
 const useCases = initializeFirestoreRepositories(firestoreInstance);
+const firebaseAuth = getAuth(); // Firebase Authインスタンスを取得
 
 const app = new OpenAPIHono<{ Variables: { userId: string } }>()
 	.doc("/specification", {
@@ -84,15 +86,25 @@ const app = new OpenAPIHono<{ Variables: { userId: string } }>()
 			credentials: true,
 		}),
 	)
-	.use("/destinations*", authMiddleware)
-	.use("/templates*", authMiddleware)
-	.use("/me/notion-integrations*", authMiddleware)
-	.use("/notion-databases*", authMiddleware)
-	// Routes
-	.route("/destinations", createDestinationRoutes(useCases))
-	.route("/templates", createTemplateRoutes(useCases))
-	.route("/me/notion-integrations", createUserNotionIntegrationRoutes(useCases))
-	.route("/notion-databases", createNotionDatabaseRoutes(useCases))
+	.route(
+		"/destinations",
+		createDestinationRoutes(useCases, createAuthMiddleware(firebaseAuth)),
+	)
+	.route(
+		"/templates",
+		createTemplateRoutes(useCases, createAuthMiddleware(firebaseAuth)),
+	)
+	.route(
+		"/me/notion-integrations",
+		createUserNotionIntegrationRoutes(
+			useCases,
+			createAuthMiddleware(firebaseAuth),
+		),
+	)
+	.route(
+		"/notion-databases",
+		createNotionDatabaseRoutes(useCases, createAuthMiddleware(firebaseAuth)),
+	)
 	.route("/webhooks", createWebhookRoutes(useCases))
 	.get("/", (c) => c.text("NotiPal App is running!"));
 

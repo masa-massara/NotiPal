@@ -37,9 +37,17 @@ export const createFirestoreUserNotionIntegrationRepository = (
 	): Promise<InternalUserNotionIntegration[]> => {
 		const snapshot = await collection.where("userId", "==", userId).get();
 		if (snapshot.empty) return [];
-		return snapshot.docs.map((doc) =>
-			internalUserNotionIntegrationSchema.parse(doc.data()),
-		);
+		return snapshot.docs.map((doc) => {
+			const data = doc.data();
+			// FirestoreのTimestampをDateオブジェクトに変換
+			if (data.createdAt && typeof data.createdAt.toDate === "function") {
+				data.createdAt = data.createdAt.toDate();
+			}
+			if (data.updatedAt && typeof data.updatedAt.toDate === "function") {
+				data.updatedAt = data.updatedAt.toDate();
+			}
+			return internalUserNotionIntegrationSchema.parse(data);
+		});
 	};
 
 	const deleteById = async (id: string, userId: string): Promise<void> => {
