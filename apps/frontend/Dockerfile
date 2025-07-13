@@ -39,6 +39,8 @@ COPY biome.json ./
 ENV NODE_ENV=production
 RUN bun run build
 
+COPY apps/frontend/public ./apps/frontend/public
+
 
 # ステージ2: プロダクションイメージの作成
 FROM oven/bun:1 as production
