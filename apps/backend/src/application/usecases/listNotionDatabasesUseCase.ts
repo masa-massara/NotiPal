@@ -23,59 +23,59 @@ export const createListNotionDatabasesUseCase = (deps: {
 	return async (
 		input: ListNotionDatabasesInput,
 	): Promise<ListNotionDatabasesOutput> => {
-		const { integrationId, userId } = input;
-
-		// ログ 6: ユースケース実行開始
-		console.log(
-			`【BE Log 6 at UseCase】ListNotionDatabasesUseCase - Entry for integrationId: ${integrationId}, userId: ${userId}`,
-		);
-
-		// 1. Fetch UserNotionIntegration
-		const integration = await userNotionIntegrationRepository.findById(
-			integrationId,
-			userId,
-		);
-		// ログ 7: 連携情報の取得結果
-		console.log(
-			"【BE Log 7 at UseCase】Fetched UserNotionIntegration:",
-			integration
-				? `ID: ${integration.id}, Name: ${integration.integrationName}`
-				: "Not Found",
-		);
-
-		if (!integration) {
-			console.warn(
-				`【BE Log 7.1 at UseCase】Notion integration with ID ${integrationId} not found or not accessible by user.`,
-			);
-			throw new HTTPException(404, {
-				message: `Notion integration with ID ${integrationId} not found or not accessible by user.`,
-				cause: "UserNotionIntegrationNotFound",
-			});
-		}
-
-		// 2. Decrypt notionIntegrationToken
-		let decryptedToken: string;
 		try {
-			decryptedToken = await encryptionService.decrypt(
-				integration.notionIntegrationToken,
-			);
-			// ログ 8: トークン復号化成功
+			const { integrationId, userId } = input;
+
+			// ログ 6: ユースケース実行開始
 			console.log(
-				`【BE Log 8 at UseCase】Token decrypted successfully for integration ID ${integrationId}.`,
+				`【BE Log 6 at UseCase】ListNotionDatabasesUseCase - Entry for integrationId: ${integrationId}, userId: ${userId}`,
 			);
-		} catch (error) {
-			console.error(
-				`【BE Log 8.1 at UseCase】Failed to decrypt token for integration ID ${integrationId}:`,
-				error,
-			);
-			throw new HTTPException(500, {
-				message: "Failed to decrypt Notion integration token.",
-				cause: "DecryptionError",
-			});
-		}
 
-		// 3. Call notionApiService.listAccessibleDatabases()
-		try {
+			// 1. Fetch UserNotionIntegration
+			const integration = await userNotionIntegrationRepository.findById(
+				integrationId,
+				userId,
+			);
+			// ログ 7: 連携情報の取得結果
+			console.log(
+				"【BE Log 7 at UseCase】Fetched UserNotionIntegration:",
+				integration
+					? `ID: ${integration.id}, Name: ${integration.integrationName}`
+					: "Not Found",
+			);
+
+			if (!integration) {
+				console.warn(
+					`【BE Log 7.1 at UseCase】Notion integration with ID ${integrationId} not found or not accessible by user.`,
+				);
+				throw new HTTPException(404, {
+					message: `Notion integration with ID ${integrationId} not found or not accessible by user.`,
+					cause: "UserNotionIntegrationNotFound",
+				});
+			}
+
+			// 2. Decrypt notionIntegrationToken
+			let decryptedToken: string;
+			try {
+				decryptedToken = await encryptionService.decrypt(
+					integration.notionIntegrationToken,
+				);
+				// ログ 8: トークン復号化成功
+				console.log(
+					`【BE Log 8 at UseCase】Token decrypted successfully for integration ID ${integrationId}.`,
+				);
+			} catch (error) {
+				console.error(
+					`【BE Log 8.1 at UseCase】Failed to decrypt token for integration ID ${integrationId}:`,
+					error,
+				);
+				throw new HTTPException(500, {
+					message: "Failed to decrypt Notion integration token.",
+					cause: "DecryptionError",
+				});
+			}
+
+			// 3. Call notionApiService.listAccessibleDatabases()
 			// ログ 9: NotionApiService呼び出し直前
 			console.log(
 				`【BE Log 9 at UseCase】Calling notionApiService.listAccessibleDatabases for integration ID: ${integrationId}`,
@@ -101,21 +101,18 @@ export const createListNotionDatabasesUseCase = (deps: {
 				JSON.stringify(output, null, 2),
 			);
 			return output;
-			// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-		} catch (error: any) {
+		} catch (error: unknown) {
 			// ログ 12: NotionApiService呼び出し中のエラー
 			console.error(
-				`【BE Log 12 at UseCase】Error fetching accessible databases from Notion API for integration ID ${integrationId}:`,
-				error.message,
-				error.cause ? `Cause: ${JSON.stringify(error.cause)}` : "",
+				`【BE Log 12 at UseCase】Error in ListNotionDatabasesUseCase for integration ID ${input.integrationId}:`,
+				error,
 			);
 			if (error instanceof HTTPException) {
 				throw error;
 			}
 			throw new HTTPException(500, {
-				message:
-					"An error occurred while fetching accessible databases from Notion.",
-				cause: error.message || "NotionApiError",
+				message: "An unexpected error occurred while listing Notion databases.",
+				cause: error instanceof Error ? error.message : String(error),
 			});
 		}
 	};

@@ -23,6 +23,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiClient as hc } from "@/lib/apiClient";
 
+import { getDestinations } from "@/services/destinationService";
+import {
+	getNotionDatabaseProperties,
+	getNotionDatabases,
+} from "@/services/notionService";
+import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService";
 import { idTokenAtom } from "@/store/globalAtoms";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type {
@@ -88,27 +94,8 @@ function NewTemplatePage() {
 		NotionIntegration[],
 		Error
 	>({
-		queryKey: ["notionIntegrations", currentIdToken],
-		queryFn: async ({ queryKey }) => {
-			const [, currentIdToken] = queryKey;
-			if (!currentIdToken)
-				throw new Error("ID token not available for Notion Integrations.");
-			const res = await hc.me["notion-integrations"].$get();
-			if (!res.ok) {
-				throw new Error("Failed to fetch Notion integrations");
-			}
-			const data = await res.json();
-			if (Array.isArray(data)) {
-				return data.map((integration) => ({
-					id: integration.id,
-					userId: integration.userId,
-					createdAt: integration.createdAt,
-					updatedAt: integration.updatedAt,
-					integrationName: integration.integrationName,
-				}));
-			}
-			return [];
-		},
+		queryKey: ["notionIntegrations"],
+		queryFn: getUserNotionIntegrations,
 	});
 
 	const { data: destinations, isLoading: isLoadingDestinations } = useQuery<
@@ -116,24 +103,7 @@ function NewTemplatePage() {
 		Error
 	>({
 		queryKey: ["destinations"],
-		queryFn: async () => {
-			const res = await hc.destinations.$get();
-			if (!res.ok) {
-				throw new Error("Failed to fetch destinations");
-			}
-			const data = await res.json();
-			if (Array.isArray(data)) {
-				return data.map((destination) => ({
-					id: destination.id,
-					userId: destination.userId,
-					webhookUrl: destination.webhookUrl,
-					createdAt: destination.createdAt,
-					updatedAt: destination.updatedAt,
-					name: destination.name,
-				}));
-			}
-			return [];
-		},
+		queryFn: getDestinations,
 	});
 
 	const {
