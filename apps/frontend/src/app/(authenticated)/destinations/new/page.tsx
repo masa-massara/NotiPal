@@ -14,7 +14,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useApiClient } from "@/hooks/useApiClient"; // Added import
 import { createDestination } from "@/services/destinationService";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createDestinationApiSchema } from "@notipal/common";
@@ -30,7 +29,6 @@ function NewDestinationPage() {
 	const router = useRouter();
 	const { toast } = useToast();
 	const queryClient = useQueryClient();
-	const api = useApiClient(); // Instantiate useApiClient
 
 	const {
 		register,
@@ -47,7 +45,7 @@ function NewDestinationPage() {
 	});
 
 	const mutation = useMutation({
-		mutationFn: (data: FormData) => createDestination(api, data), // Updated mutationFn
+		mutationFn: (data: FormData) => createDestination(data), // Updated mutationFn
 		onSuccess: () => {
 			toast({
 				title: "Success",

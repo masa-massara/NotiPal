@@ -48,8 +48,8 @@ export const createCreateTemplateUseCase = (dependencies: {
 			body: input.body,
 			conditions: input.conditions || [],
 			destinationId: input.destinationId,
-			createdAt: now,
-			updatedAt: now,
+			createdAt: now.toISOString(),
+			updatedAt: now.toISOString(),
 		};
 		await templateRepository.save(newTemplate);
 		return newTemplate;

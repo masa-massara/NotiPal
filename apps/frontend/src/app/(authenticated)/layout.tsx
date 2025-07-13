@@ -3,6 +3,9 @@
 import AppLayout from "@/components/layout/AppLayout";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { useAuthGuard } from "@/hooks/useAuthGuard"; // Adjusted path
+import { idTokenAtom } from "@/store/globalAtoms";
+import { useAtomValue } from "jotai";
+import { useEffect } from "react";
 
 export default function AuthenticatedLayout({
 	children,
@@ -10,6 +13,12 @@ export default function AuthenticatedLayout({
 	children: React.ReactNode;
 }) {
 	const { authCheckComplete, isAuthenticated } = useAuthGuard();
+	const idToken = useAtomValue(idTokenAtom);
+
+	useEffect(() => {
+		console.log("Current ID Token in Jotai (AuthenticatedLayout):");
+		console.log(idToken);
+	}, [idToken]);
 
 	// Show loading spinner if the initial auth check is not yet complete.
 	// If authCheckComplete is true but isAuthenticated is false,

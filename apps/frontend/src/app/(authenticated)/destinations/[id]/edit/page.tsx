@@ -22,7 +22,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { useApiClient } from "@/hooks/useApiClient"; // Added import
 import {
 	getDestination,
 	updateDestination,
@@ -38,7 +37,6 @@ function EditDestinationPage() {
 	const id = params.id as string;
 	const { toast } = useToast();
 	const queryClient = useQueryClient();
-	const api = useApiClient(); // Instantiate useApiClient
 
 	const {
 		data: destination,
@@ -46,8 +44,8 @@ function EditDestinationPage() {
 		error: fetchError,
 	} = useQuery<Destination, Error>({
 		queryKey: ["destination", id],
-		queryFn: () => getDestination(api, id as string), // Updated queryFn
-		enabled: !!api && !!id, // Updated enabled flag
+		queryFn: () => getDestination(id as string), // Updated queryFn
+		enabled: !!id, // Updated enabled flag
 	});
 
 	const {
@@ -74,7 +72,7 @@ function EditDestinationPage() {
 
 	const mutation = useMutation({
 		mutationFn: (formData: FormData) =>
-			updateDestination(api, id as string, {
+			updateDestination(id as string, {
 				...formData,
 				webhookUrl: formData.webhookUrl ?? "",
 			}),

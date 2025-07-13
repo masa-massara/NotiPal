@@ -39,8 +39,8 @@ export const createUpdateDestinationUseCase = (dependencies: {
 			existing.webhookUrl,
 			existing.userId,
 			existing.name,
-			existing.createdAt,
-			existing.updatedAt,
+			new Date(existing.createdAt),
+			new Date(existing.updatedAt),
 		);
 		if (input.name !== undefined && entity.name !== input.name) {
 			entity.updateName(input.name);
@@ -57,8 +57,8 @@ export const createUpdateDestinationUseCase = (dependencies: {
 			userId: entity.userId,
 			name: entity.name,
 			webhookUrl: entity.webhookUrl,
-			createdAt: entity.createdAt,
-			updatedAt: entity.updatedAt,
+			createdAt: entity.createdAt.toISOString(),
+			updatedAt: entity.updatedAt.toISOString(),
 		};
 		await destinationRepository.save(updatedData);
 		return updatedData;

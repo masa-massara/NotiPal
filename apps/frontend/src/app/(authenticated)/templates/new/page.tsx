@@ -21,20 +21,22 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { useApiClient } from "@/hooks/useApiClient";
+import { apiClient as hc } from "@/lib/apiClient";
+
 import { getDestinations } from "@/services/destinationService";
 import {
 	getNotionDatabaseProperties,
 	getNotionDatabases,
 } from "@/services/notionService";
-import { createTemplate } from "@/services/templateService";
 import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService";
 import { idTokenAtom } from "@/store/globalAtoms";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type {
 	CreateTemplateApiInput as CreateTemplateData,
 	Destination,
+	NotionDatabase,
 	UserNotionIntegration as NotionIntegration,
+	NotionProperty,
 } from "@notipal/common";
 import { createTemplateApiSchema } from "@notipal/common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -49,20 +51,11 @@ import type { z } from "zod";
 const formSchema = createTemplateApiSchema;
 type FormData = z.infer<typeof formSchema>;
 
-// 一時的な型定義（本来は共通パッケージに移すべき）
-type NotionDatabase = { id: string; name: string };
-type NotionProperty = {
-	id: string;
-	name: string;
-	type: string;
-	options?: { id: string; name: string; color?: string }[];
-};
-
 function NewTemplatePage() {
 	const router = useRouter();
 	const { toast } = useToast();
 	const queryClient = useQueryClient();
-	const api = useApiClient();
+
 	const currentIdToken = useAtomValue(idTokenAtom);
 
 	const {
@@ -101,13 +94,8 @@ function NewTemplatePage() {
 		NotionIntegration[],
 		Error
 	>({
-		queryKey: ["notionIntegrations", currentIdToken],
-		queryFn: async () => {
-			if (!currentIdToken)
-				throw new Error("ID token not available for Notion Integrations.");
-			return getUserNotionIntegrations(currentIdToken);
-		},
-		enabled: !!currentIdToken,
+		queryKey: ["notionIntegrations"],
+		queryFn: getUserNotionIntegrations,
 	});
 
 	const { data: destinations, isLoading: isLoadingDestinations } = useQuery<
@@ -115,8 +103,7 @@ function NewTemplatePage() {
 		Error
 	>({
 		queryKey: ["destinations"],
-		queryFn: () => getDestinations(api),
-		enabled: !!api,
+		queryFn: getDestinations,
 	});
 
 	const {
@@ -126,24 +113,26 @@ function NewTemplatePage() {
 		isFetching: isFetchingNotionDatabases,
 	} = useQuery<NotionDatabase[], Error>({
 		queryKey: ["notionDatabases", selectedNotionIntegrationId],
-		queryFn: async () => {
-			// ログ2: API呼び出し開始の確認
-			// console.log(
-			// 	`【FE Log 2】getNotionDatabases API呼び出し開始 (Integration ID: ${selectedNotionIntegrationId})`,
-			// );
-			if (!selectedNotionIntegrationId) {
-				// ログ3: Integration ID未選択時のスキップ確認
-				// console.log(
-				// 	"【FE Log 3】Integration ID未選択のため、API呼び出しスキップ",
-				// );
-				return Promise.resolve([]);
+		queryFn: async ({ queryKey }) => {
+			const [, integrationIdFromQueryKey] = queryKey; // Use a new variable name
+			if (!integrationIdFromQueryKey) return [];
+			const res = await hc.me["notion-integrations"][
+				":integrationId"
+			].databases.$get({
+				param: { integrationId: integrationIdFromQueryKey as string }, // Use the correct variable
+			});
+			if (!res.ok) {
+				throw new Error("Failed to fetch Notion databases");
 			}
-			const result = await getNotionDatabases(api, selectedNotionIntegrationId);
-			// ログ4: API呼び出し結果（生データ）の確認
-			// console.log("【FE Log 4】getNotionDatabases APIレスポンス:", result);
-			return result;
+			const data = await res.json();
+			if (data) {
+				console.log("data", data);
+
+				return [];
+			}
+			return [];
 		},
-		enabled: !!api && !!selectedNotionIntegrationId,
+		enabled: !!selectedNotionIntegrationId,
 	});
 
 	// ログ5: useQueryから取得した各種状態の確認
@@ -169,18 +158,27 @@ function NewTemplatePage() {
 			selectedNotionIntegrationId,
 			selectedNotionDatabaseId,
 		],
-		queryFn: () => {
-			if (!selectedNotionIntegrationId || !selectedNotionDatabaseId) {
-				return Promise.resolve([]);
+		queryFn: async () => {
+			if (!selectedNotionIntegrationId || !selectedNotionDatabaseId) return [];
+			const res = await hc["notion-databases"][":databaseId"].properties.$get({
+				param: { databaseId: selectedNotionDatabaseId },
+				query: { integrationId: selectedNotionIntegrationId },
+			});
+			if (!res.ok) {
+				throw new Error("Failed to fetch database properties");
 			}
-			return getNotionDatabaseProperties(
-				api,
-				selectedNotionIntegrationId,
-				selectedNotionDatabaseId,
-			);
+			const data = await res.json();
+			if (Array.isArray(data)) {
+				return (data as NotionProperty[]).map((prop) => ({
+					id: prop.id,
+					name: prop.name,
+					type: prop.type,
+					options: prop.options,
+				}));
+			}
+			return [];
 		},
-		enabled:
-			!!api && !!selectedNotionIntegrationId && !!selectedNotionDatabaseId,
+		enabled: !!selectedNotionIntegrationId && !!selectedNotionDatabaseId,
 	});
 
 	const handlePropertyChange = useCallback(
@@ -206,7 +204,7 @@ function NewTemplatePage() {
 	}, [selectedNotionDatabaseId, setValue]);
 
 	const mutation = useMutation({
-		mutationFn: (formData: FormData) => {
+		mutationFn: async (formData: FormData) => {
 			if (!currentIdToken) {
 				throw new Error("ID token not available for creating template.");
 			}
@@ -216,7 +214,10 @@ function NewTemplatePage() {
 					formData.conditions?.map((c) => ({ ...c, value: c.value ?? "" })) ||
 					[],
 			};
-			return createTemplate(currentIdToken, templateData);
+			const res = await hc.templates.$post({ json: templateData });
+			if (!res.ok) {
+				throw new Error("Failed to create template");
+			}
 		},
 		onSuccess: () => {
 			toast({

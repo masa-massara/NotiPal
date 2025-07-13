@@ -21,11 +21,12 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useApiClient } from "@/hooks/useApiClient"; // getDestinations に渡すため
-import { getDestinations } from "@/services/destinationService"; // これはuseApiClient経由なので修正不要
-import { deleteTemplate, getTemplates } from "@/services/templateService";
-import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService"; // これはatom経由なので修正不要
-import { idTokenAtom } from "@/store/globalAtoms"; // idToken取得のため
+import { apiClient as hc } from "@/lib/apiClient";
+
+import { getDestinations } from "@/services/destinationService";
+import { getTemplates } from "@/services/templateService";
+import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService";
+import { authReadyAtom, idTokenAtom } from "@/store/globalAtoms"; // idToken取得のため
 import type {
 	Destination,
 	UserNotionIntegration as NotionIntegration,
@@ -43,69 +44,62 @@ function TemplatesDashboardPage() {
 	const [selectedTemplateId, setSelectedTemplateId] = React.useState<
 		string | null
 	>(null);
-	const currentIdToken = useAtomValue(idTokenAtom); // IDトークンを取得
-	const apiClient = useApiClient(); // getDestinations と getUserNotionIntegrations (もし使うなら) のため
 
 	const {
 		data: templates,
 		isLoading: isLoadingTemplates,
 		error: errorTemplates,
-	} = useQuery<Template[], Error>({
-		queryKey: ["templates", currentIdToken], // queryKeyにidTokenを含めて再取得をトリガー
-		queryFn: async () => {
-			if (!currentIdToken) {
-				throw new Error("ID token not available.");
-			}
-			return getTemplates(currentIdToken); // 修正されたサービス関数を呼ぶ
-		},
-		enabled: !!currentIdToken, // トークンがある場合のみ実行
+	} = useQuery<Template[] | null, Error>({
+		queryKey: ["templates"],
+		queryFn: getTemplates,
 	});
 
 	// NotionIntegrations と Destinations はIDトークンに直接依存せず、
 	// useQuery 内で api クライアントや Jotai atom 経由で取得しているので、
 	// ここの queryFn の修正は不要か、または既に userNotionIntegrationAtoms 経由で取得している
 	const { data: notionIntegrations } = useQuery<NotionIntegration[], Error>({
-		queryKey: ["notionIntegrations", currentIdToken], // ここも念のため currentIdToken に依存させる
-		queryFn: async () => {
-			// getUserNotionIntegrations も idToken を取るように修正した場合
-			if (!currentIdToken)
-				throw new Error("ID token not available for Notion Integrations.");
-			return getUserNotionIntegrations(currentIdToken);
-		},
-		enabled: !!currentIdToken,
+		queryKey: ["notionIntegrations"],
+		queryFn: getUserNotionIntegrations,
 		staleTime: Number.POSITIVE_INFINITY,
 	});
 	// または userNotionIntegrationAtoms.ts で定義された atom を useAtomValue で読む
 
 	const { data: destinations } = useQuery<Destination[], Error>({
-		queryKey: ["destinations"], // useApiClient を使うので idToken を key に含めなくても良い
-		queryFn: () => getDestinations(apiClient), // useApiClient を使うので修正不要
-		enabled: !!apiClient, // apiClient が利用可能な場合
+		queryKey: ["destinations"],
+		queryFn: getDestinations,
 		staleTime: Number.POSITIVE_INFINITY,
 	});
 
 	const notionIntegrationMap = React.useMemo(() => {
-		if (!notionIntegrations) return new Map();
-		return new Map(notionIntegrations.map((ni) => [ni.id, ni.integrationName]));
+		if (!notionIntegrations?.data) return new Map();
+		return new Map(
+			notionIntegrations.data.map((ni) => [ni.id, ni.integrationName]),
+		);
 	}, [notionIntegrations]);
 
 	const destinationMap = React.useMemo(() => {
-		if (!destinations) return new Map();
+		if (!destinations?.data) return new Map();
 		return new Map(
-			destinations.map((d) => [
+			destinations.data.map((d) => [
 				d.id,
 				d.name || `${d.webhookUrl.substring(0, 30)}...`,
 			]),
 		);
 	}, [destinations]);
 
+	const idToken = useAtomValue(idTokenAtom);
+
 	const deleteMutation = useMutation({
 		mutationFn: async (templateIdToDelete: string) => {
-			// mutationFn も idToken を使うように
-			if (!currentIdToken) {
+			if (!idToken) {
 				throw new Error("ID token not available for delete operation.");
 			}
-			return deleteTemplate(currentIdToken, templateIdToDelete);
+			const res = await hc.templates[":id"].$delete({
+				param: { id: templateIdToDelete },
+			});
+			if (!res.ok) {
+				throw new Error("Failed to delete template");
+			}
 		},
 		onSuccess: () => {
 			toast({

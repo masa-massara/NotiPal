@@ -19,11 +19,12 @@ export default function Sidebar() {
 		// { href: "/templates", label: "Notification Template Management" }, // Removed duplicate link
 		{ href: "/notion-integrations", label: "Notion Integration Management" },
 		{ href: "/destinations", label: "Destination Management" },
+		{ href: "/test", label: "Test" },
 		// { href: "/help", label: "Help" }, // Optional
 	];
 
 	return (
-		<aside className="w-64 p-4 border-r flex flex-col space-y-2">
+		<aside className="flex flex-col space-y-2 p-4 border-r w-64">
 			<nav className="flex flex-col space-y-1">
 				{navItems.map((item) => (
 					<Link

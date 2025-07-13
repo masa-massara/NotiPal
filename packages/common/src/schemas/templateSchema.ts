@@ -1,11 +1,10 @@
 import { z } from "zod";
-import { Timestamp } from "firebase-admin/firestore";
 
 // Templateの条件部分のスキーマ
 export const templateConditionSchema = z.object({
 	propertyId: z.string().describe("NotionのプロパティIDまたは名前"),
 	operator: z.string().describe("比較演算子"),
-	value: z.any().optional().describe("比較する値"),
+	value: z.unknown().optional().describe("比較する値"),
 });
 
 // DBやドメインモデルで使う、完全な形のスキーマ
@@ -19,15 +18,13 @@ export const templateSchema = z.object({
 	conditions: z.array(templateConditionSchema).describe("通知条件のリスト (AND条件)"),
 	destinationId: z.string().min(1, { message: "通知先は必須です。" }).describe("通知を送信する先のDestinationのID"),
 	createdAt: z.preprocess((arg) => {
-		if (arg instanceof Timestamp) return arg.toDate();
 		if (typeof arg === "string" || typeof arg === "number") return new Date(arg);
 		return arg;
-	}, z.date()).describe("作成日時"),
+	}, z.date().transform((val) => val.toISOString())).describe("作成日時"),
 	updatedAt: z.preprocess((arg) => {
-		if (arg instanceof Timestamp) return arg.toDate();
 		if (typeof arg === "string" || typeof arg === "number") return new Date(arg);
 		return arg;
-	}, z.date()).describe("更新日時"),
+	}, z.date().transform((val) => val.toISOString())).describe("更新日時"),
 });
 
 // APIの入力用スキーマ (新規作成時)

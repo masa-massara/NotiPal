@@ -4,8 +4,12 @@
 		"jsx": "react-jsx",
 		"jsxImportSource": "hono/jsx",
 		"downlevelIteration": true,
-		"module": "ESNext", // または "NodeNext"
-		"moduleResolution": "bundler", // または "Bundler"
-		"target": "ESNext"
-	}
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
+		"target": "ES2022",
+		"lib": ["ESNext", "DOM"],
+		"skipLibCheck": true,
+		"types": []
+	},
+	"include": ["src"]
 }
