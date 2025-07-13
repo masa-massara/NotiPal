@@ -24,11 +24,17 @@ ENV NEXT_PUBLIC_NODE_ENV=$NEXT_PUBLIC_NODE_ENV
 COPY package.json bun.lock turbo.json ./
 COPY apps/frontend/package.json ./apps/frontend/
 COPY apps/backend/package.json ./apps/backend/
-# COPY bunfig.toml ./ # もしルートにあれば
+COPY packages/common/package.json ./packages/common/
 
 RUN bun install --frozen-lockfile
 
-COPY . .
+COPY apps/frontend/src ./apps/frontend/src
+COPY packages/common/src ./packages/common/src
+COPY apps/frontend/next.config.ts ./apps/frontend/next.config.ts
+COPY apps/frontend/postcss.config.mjs ./apps/frontend/postcss.config.mjs
+COPY apps/frontend/tailwind.config.ts ./apps/frontend/tailwind.config.ts
+COPY apps/frontend/tsconfig.json ./apps/frontend/tsconfig.json
+COPY biome.json ./
 
 ENV NODE_ENV=production
 RUN bun run build
