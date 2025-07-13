@@ -71,16 +71,16 @@ function TemplatesDashboardPage() {
 	});
 
 	const notionIntegrationMap = React.useMemo(() => {
-		if (!notionIntegrations?.data) return new Map();
+		if (!notionIntegrations) return new Map();
 		return new Map(
-			notionIntegrations.data.map((ni) => [ni.id, ni.integrationName]),
+			notionIntegrations.map((ni) => [ni.id, ni.integrationName]),
 		);
 	}, [notionIntegrations]);
 
 	const destinationMap = React.useMemo(() => {
-		if (!destinations?.data) return new Map();
+		if (!destinations) return new Map();
 		return new Map(
-			destinations.data.map((d) => [
+			destinations.map((d) => [
 				d.id,
 				d.name || `${d.webhookUrl.substring(0, 30)}...`,
 			]),
