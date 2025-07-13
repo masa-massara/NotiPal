@@ -7,7 +7,7 @@
                 "format": "bun biome format --write ./src",
                 "check": "bun biome check --write ./src",
                 "generate:api-types": "bun run src/main.ts & wait-on http://localhost:8080/specification && openapi-typescript http://localhost:8080/specification --output ../../packages/common/src/types/api.d.ts && kill $!",
-                "build:types": "sed -i.bak 's/export type { AppType } from \".\\/types\\/apps\\/backend\\/src\\/app\";/\\/\\/ export type { AppType } from \".\\/types\\/apps\\/backend\\/src\\/app\";/' ../../packages/common/src/index.ts && rm -rf ../../packages/common/src/types/apps/backend && tsc -p tsconfig.dts.json && mv ../../packages/common/src/index.ts.bak ../../packages/common/src/index.ts"
+                "build:types": "sed -i.bak 's|^export type { AppType } from \"./types/apps/backend/src/app\";|// export type { AppType } from \"./types/apps/backend/src/app\";|' ../../packages/common/src/index.ts && rm -rf ../../packages/common/src/types/apps/backend && tsc -p tsconfig.dts.json && mv ../../packages/common/src/index.ts.bak ../../packages/common/src/index.ts"
         },
 	"dependencies": {
 		"@hono/swagger-ui": "^0.5.2",
