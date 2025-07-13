@@ -33,7 +33,9 @@ export declare const initializeFirestoreRepositories: (firestoreInstance: Firest
     }) => Promise<import("@notipal/common").Destination>;
     deleteDestinationUseCase: (input: import("../application/usecases/deleteDestinationUseCase").DeleteDestinationInput) => Promise<void>;
     getDestinationUseCase: (input: import("../application/usecases/getDestinationUseCase").GetDestinationInput) => Promise<import("../application/usecases/getDestinationUseCase").GetDestinationOutput>;
-    listDestinationsUseCase: (input: import("../application/usecases/listDestinationsUseCase").ListDestinationsInput) => Promise<import("../application/usecases/listDestinationsUseCase").ListDestinationsOutput>;
+    listDestinationsUseCase: (input: {
+        userId: string;
+    }) => Promise<import("@notipal/common").Destination[]>;
     updateDestinationUseCase: (input: import("../application/usecases/updateDestinationUseCase").UpdateDestinationInput) => Promise<import("../application/usecases/updateDestinationUseCase").UpdateDestinationOutput>;
     createUserNotionIntegrationUseCaseFn: (input: {
         userId: string;

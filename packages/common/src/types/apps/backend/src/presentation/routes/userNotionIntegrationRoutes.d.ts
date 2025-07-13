@@ -29,12 +29,15 @@ export declare const createUserNotionIntegrationRoutes: (useCases: InitializedUs
         $get: {
             input: {};
             output: {
-                id: string;
-                userId: string;
-                createdAt: string;
-                updatedAt: string;
-                integrationName: string;
-            }[];
+                success: true;
+                data: {
+                    id: string;
+                    userId: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    integrationName: string;
+                }[];
+            };
             outputFormat: "json";
             status: 200;
         };
@@ -73,9 +76,12 @@ export declare const createUserNotionIntegrationRoutes: (useCases: InitializedUs
                 };
             };
             output: {
-                name: string;
-                id: string;
-            }[];
+                success: true;
+                data: {
+                    name: string;
+                    id: string;
+                }[];
+            };
             outputFormat: "json";
             status: 200;
         };

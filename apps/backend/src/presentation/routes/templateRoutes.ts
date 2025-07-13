@@ -25,7 +25,10 @@ const listTemplatesRoute = createRoute({
 			description: "List of templates",
 			content: {
 				"application/json": {
-					schema: z.array(templateSchema),
+					schema: z.object({
+						success: z.literal(true),
+						data: z.array(templateSchema),
+					}),
 				},
 			},
 		},
@@ -120,16 +123,10 @@ const deleteTemplateRoute = createRoute({
 	},
 });
 
-import type { MiddlewareHandler } from "hono";
-
-export const createTemplateRoutes = (
-	useCases: InitializedUseCases,
-	authMiddleware: MiddlewareHandler,
-) => {
+export const createTemplateRoutes = (useCases: InitializedUseCases) => {
 	const templateRoutes = new OpenAPIHono<{
 		Variables: { userId: string };
 	}>()
-		.use("*", authMiddleware)
 		.openapi(listTemplatesRoute, (c) => {
 			const result = listTemplatesHandler(c, useCases);
 			return result;

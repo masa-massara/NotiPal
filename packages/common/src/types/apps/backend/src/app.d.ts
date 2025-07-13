@@ -7,20 +7,76 @@ declare const app: import("hono/hono-base").HonoBase<{
     Variables: {
         userId: string;
     };
-}, ({
-    "/notion-databases*": {};
+}, ((({
+    "*": {
+        $get: {
+            input: {};
+            output: {};
+            outputFormat: "json";
+            status: import("hono/utils/http-status").StatusCode;
+        };
+    };
 } | import("hono/types").MergeSchemaPath<{
+    "/notion": {
+        $post: {
+            input: {
+                json: unknown;
+            };
+            output: {
+                error: string;
+                details: string;
+            };
+            outputFormat: "json";
+            status: 500;
+        } | {
+            input: {
+                json: unknown;
+            };
+            output: {
+                message: string;
+            };
+            outputFormat: "json";
+            status: 200;
+        };
+    };
+}, "/webhooks">) & {
+    "/": {
+        $get: {
+            input: {};
+            output: "NotiPal App is running!";
+            outputFormat: "text";
+            status: import("hono/utils/http-status").ContentfulStatusCode;
+        };
+    };
+}) & {
+    "/doc": {
+        $get: {
+            input: {};
+            output: {};
+            outputFormat: string;
+            status: import("hono/utils/http-status").StatusCode;
+        } | {
+            input: {};
+            output: {};
+            outputFormat: string;
+            status: import("hono/utils/http-status").StatusCode;
+        };
+    };
+}) | import("hono/types").MergeSchemaPath<{
     "/": {
         $get: {
             input: {};
             output: {
-                id: string;
-                userId: string;
-                webhookUrl: string;
-                createdAt: string;
-                updatedAt: string;
-                name?: string | undefined;
-            }[];
+                success: true;
+                data: {
+                    id: string;
+                    userId: string;
+                    webhookUrl: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    name?: string | undefined;
+                }[];
+            };
             outputFormat: "json";
             status: 200;
         };
@@ -109,21 +165,24 @@ declare const app: import("hono/hono-base").HonoBase<{
         $get: {
             input: {};
             output: {
-                name: string;
-                id: string;
-                userId: string;
-                createdAt: string;
-                updatedAt: string;
-                notionDatabaseId: string;
-                userNotionIntegrationId: string | null;
-                body: string;
-                conditions: {
-                    propertyId: string;
-                    operator: string;
-                    value?: undefined;
+                success: true;
+                data: {
+                    name: string;
+                    id: string;
+                    userId: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    notionDatabaseId: string;
+                    userNotionIntegrationId: string | null;
+                    body: string;
+                    conditions: {
+                        propertyId: string;
+                        operator: string;
+                        value?: undefined;
+                    }[];
+                    destinationId: string;
                 }[];
-                destinationId: string;
-            }[];
+            };
             outputFormat: "json";
             status: 200;
         };
@@ -272,12 +331,15 @@ declare const app: import("hono/hono-base").HonoBase<{
         $get: {
             input: {};
             output: {
-                id: string;
-                userId: string;
-                createdAt: string;
-                updatedAt: string;
-                integrationName: string;
-            }[];
+                success: true;
+                data: {
+                    id: string;
+                    userId: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    integrationName: string;
+                }[];
+            };
             outputFormat: "json";
             status: 200;
         };
@@ -316,9 +378,12 @@ declare const app: import("hono/hono-base").HonoBase<{
                 };
             };
             output: {
-                name: string;
-                id: string;
-            }[];
+                success: true;
+                data: {
+                    name: string;
+                    id: string;
+                }[];
+            };
             outputFormat: "json";
             status: 200;
         };
@@ -349,38 +414,6 @@ declare const app: import("hono/hono-base").HonoBase<{
             status: 200;
         };
     };
-}, "/notion-databases"> | import("hono/types").MergeSchemaPath<{
-    "/notion": {
-        $post: {
-            input: {
-                json: unknown;
-            };
-            output: {
-                error: string;
-                details: string;
-            };
-            outputFormat: "json";
-            status: 500;
-        } | {
-            input: {
-                json: unknown;
-            };
-            output: {
-                message: string;
-            };
-            outputFormat: "json";
-            status: 200;
-        };
-    };
-}, "/webhooks">) & {
-    "/": {
-        $get: {
-            input: {};
-            output: "NotiPal App is running!";
-            outputFormat: "text";
-            status: import("hono/utils/http-status").ContentfulStatusCode;
-        };
-    };
-}, "/">;
+}, "/notion-databases">, "/">;
 export { app };
 export type AppType = typeof app;

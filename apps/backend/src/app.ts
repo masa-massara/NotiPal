@@ -64,6 +64,7 @@ if (!getApps().length) {
 const firestoreInstance = getFirestore();
 const useCases = initializeFirestoreRepositories(firestoreInstance);
 const firebaseAuth = getAuth(); // Firebase Authインスタンスを取得
+const authMiddleware = createAuthMiddleware(firebaseAuth);
 
 const app = new OpenAPIHono<{ Variables: { userId: string } }>()
 	.doc("/specification", {
@@ -86,27 +87,18 @@ const app = new OpenAPIHono<{ Variables: { userId: string } }>()
 			credentials: true,
 		}),
 	)
-	.route(
-		"/destinations",
-		createDestinationRoutes(useCases, createAuthMiddleware(firebaseAuth)),
-	)
-	.route(
-		"/templates",
-		createTemplateRoutes(useCases, createAuthMiddleware(firebaseAuth)),
-	)
-	.route(
-		"/me/notion-integrations",
-		createUserNotionIntegrationRoutes(
-			useCases,
-			createAuthMiddleware(firebaseAuth),
-		),
-	)
-	.route(
-		"/notion-databases",
-		createNotionDatabaseRoutes(useCases, createAuthMiddleware(firebaseAuth)),
-	)
+	// Public endpoints
 	.route("/webhooks", createWebhookRoutes(useCases))
-	.get("/", (c) => c.text("NotiPal App is running!"));
+	.get("/", (c) => c.text("NotiPal App is running!"))
+	// Public documentation endpoint
+	.get("/doc", swaggerUI({ url: "/specification" }))
+	// Apply authentication middleware globally for subsequent routes
+	.use(authMiddleware)
+	// Protected endpoints
+	.route("/destinations", createDestinationRoutes(useCases))
+	.route("/templates", createTemplateRoutes(useCases))
+	.route("/me/notion-integrations", createUserNotionIntegrationRoutes(useCases))
+	.route("/notion-databases", createNotionDatabaseRoutes(useCases));
 
 // --- OpenAPI Docs ---
 // MEMO: createRouteを使ってなかったので一旦コメントアウト、修正後に戻す
@@ -117,7 +109,6 @@ const app = new OpenAPIHono<{ Variables: { userId: string } }>()
 // 		title: "NotiPal API",
 // 	},
 // });
-app.get("/doc", swaggerUI({ url: "/specification" }));
 
 export { app };
 

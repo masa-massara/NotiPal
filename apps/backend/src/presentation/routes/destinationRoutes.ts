@@ -25,7 +25,10 @@ const listDestinationsRoute = createRoute({
 			description: "List of destinations",
 			content: {
 				"application/json": {
-					schema: z.array(destinationSchema),
+					schema: z.object({
+						success: z.literal(true),
+						data: z.array(destinationSchema),
+					}),
 				},
 			},
 		},
@@ -120,16 +123,10 @@ const deleteDestinationRoute = createRoute({
 	},
 });
 
-import type { MiddlewareHandler } from "hono";
-
-export const createDestinationRoutes = (
-	useCases: InitializedUseCases,
-	authMiddleware: MiddlewareHandler,
-) => {
+export const createDestinationRoutes = (useCases: InitializedUseCases) => {
 	const destinationRoutes = new OpenAPIHono<{
 		Variables: { userId: string };
 	}>()
-		.use("*", authMiddleware)
 		.openapi(listDestinationsRoute, (c) => {
 			const result = listDestinationsHandler(c, useCases);
 			return result;

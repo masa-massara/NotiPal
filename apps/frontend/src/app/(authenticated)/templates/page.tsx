@@ -72,9 +72,7 @@ function TemplatesDashboardPage() {
 
 	const notionIntegrationMap = React.useMemo(() => {
 		if (!notionIntegrations) return new Map();
-		return new Map(
-			notionIntegrations.map((ni) => [ni.id, ni.integrationName]),
-		);
+		return new Map(notionIntegrations.map((ni) => [ni.id, ni.integrationName]));
 	}, [notionIntegrations]);
 
 	const destinationMap = React.useMemo(() => {
@@ -107,7 +105,7 @@ function TemplatesDashboardPage() {
 				description: "Notification template deleted successfully.",
 			});
 			queryClient.invalidateQueries({
-				queryKey: ["templates", currentIdToken],
+				queryKey: ["templates", idToken],
 			});
 			setShowDeleteDialog(false);
 			setSelectedTemplateId(null);

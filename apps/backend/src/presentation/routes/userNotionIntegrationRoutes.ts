@@ -51,7 +51,10 @@ const listIntegrationsRoute = createRoute({
 			description: "List of Notion integrations",
 			content: {
 				"application/json": {
-					schema: z.array(userNotionIntegrationSchema),
+					schema: z.object({
+						success: z.literal(true),
+						data: z.array(userNotionIntegrationSchema),
+					}),
 				},
 			},
 		},
@@ -87,7 +90,10 @@ const listDatabasesRoute = createRoute({
 			description: "List of accessible Notion databases",
 			content: {
 				"application/json": {
-					schema: z.array(notionDatabaseSchema),
+					schema: z.object({
+						success: z.literal(true),
+						data: z.array(notionDatabaseSchema),
+					}),
 				},
 			},
 		},
@@ -102,16 +108,12 @@ const listDatabasesRoute = createRoute({
 	},
 });
 
-import type { MiddlewareHandler } from "hono";
-
 export const createUserNotionIntegrationRoutes = (
 	useCases: InitializedUseCases,
-	authMiddleware: MiddlewareHandler,
 ) => {
 	const routes = new OpenAPIHono<{
 		Variables: { userId: string };
 	}>()
-		.use("*", authMiddleware)
 		.openapi(createIntegrationRoute, (c) => {
 			const result = createIntegrationHandler(c, useCases);
 			return result;

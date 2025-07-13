@@ -33,21 +33,24 @@ export declare const getTemplateByIdHandler: (c: Context, useCases: InitializedU
     destinationId: string;
 }, 200, "json">>;
 export declare const listTemplatesHandler: (c: Context, useCases: InitializedUseCases) => Promise<Response & import("hono").TypedResponse<{
-    name: string;
-    id: string;
-    userId: string;
-    createdAt: string;
-    updatedAt: string;
-    notionDatabaseId: string;
-    userNotionIntegrationId: string | null;
-    body: string;
-    conditions: {
-        propertyId: string;
-        operator: string;
-        value?: undefined;
+    success: true;
+    data: {
+        name: string;
+        id: string;
+        userId: string;
+        createdAt: string;
+        updatedAt: string;
+        notionDatabaseId: string;
+        userNotionIntegrationId: string | null;
+        body: string;
+        conditions: {
+            propertyId: string;
+            operator: string;
+            value?: undefined;
+        }[];
+        destinationId: string;
     }[];
-    destinationId: string;
-}[], 200, "json">>;
+}, 200, "json">>;
 export declare const updateTemplateHandler: (c: Context, useCases: InitializedUseCases) => Promise<Response & import("hono").TypedResponse<{
     name: string;
     id: string;

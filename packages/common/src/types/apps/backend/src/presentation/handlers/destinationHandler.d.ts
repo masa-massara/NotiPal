@@ -17,13 +17,16 @@ export declare const getDestinationByIdHandler: (c: Context, useCases: Initializ
     name?: string | undefined;
 }, 200, "json">>;
 export declare const listDestinationsHandler: (c: Context, useCases: InitializedUseCases) => Promise<Response & import("hono").TypedResponse<{
-    id: string;
-    userId: string;
-    webhookUrl: string;
-    createdAt: string;
-    updatedAt: string;
-    name?: string | undefined;
-}[], 200, "json">>;
+    success: true;
+    data: {
+        id: string;
+        userId: string;
+        webhookUrl: string;
+        createdAt: string;
+        updatedAt: string;
+        name?: string | undefined;
+    }[];
+}, 200, "json">>;
 export declare const updateDestinationHandler: (c: Context, useCases: InitializedUseCases) => Promise<Response & import("hono").TypedResponse<{
     id: string;
     userId: string;

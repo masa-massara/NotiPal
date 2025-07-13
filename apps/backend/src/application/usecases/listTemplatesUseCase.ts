@@ -1,3 +1,6 @@
+import type { Template } from "@notipal/common";
+import type { TemplateRepository } from "../../domain/repositories/templateRepository";
+
 export const createListTemplatesUseCase = (deps: {
 	templateRepository: TemplateRepository;
 }) => {

@@ -9,13 +9,16 @@ export declare const createDestinationRoutes: (useCases: InitializedUseCases) =>
         $get: {
             input: {};
             output: {
-                id: string;
-                userId: string;
-                webhookUrl: string;
-                createdAt: string;
-                updatedAt: string;
-                name?: string | undefined;
-            }[];
+                success: true;
+                data: {
+                    id: string;
+                    userId: string;
+                    webhookUrl: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    name?: string | undefined;
+                }[];
+            };
             outputFormat: "json";
             status: 200;
         };

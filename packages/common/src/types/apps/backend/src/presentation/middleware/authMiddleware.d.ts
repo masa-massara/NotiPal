@@ -1,2 +1,3 @@
+import { type Auth } from "firebase-admin/auth";
 import type { MiddlewareHandler } from "hono";
-export declare const authMiddleware: MiddlewareHandler;
+export declare const createAuthMiddleware: (authInstance: Auth) => MiddlewareHandler;

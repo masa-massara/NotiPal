@@ -1,5 +1,8 @@
 // src/application/usecases/listDestinationsUseCase.ts
-import type { Destination as DestinationData } from "@notipal/common";
+import type {
+	Destination,
+	Destination as DestinationData,
+} from "@notipal/common";
 import type { DestinationRepository } from "../../domain/repositories/destinationRepository";
 
 // ユースケースの入力 (ユーザーID)

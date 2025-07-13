@@ -9,21 +9,24 @@ export declare const createTemplateRoutes: (useCases: InitializedUseCases) => Op
         $get: {
             input: {};
             output: {
-                name: string;
-                id: string;
-                userId: string;
-                createdAt: string;
-                updatedAt: string;
-                notionDatabaseId: string;
-                userNotionIntegrationId: string | null;
-                body: string;
-                conditions: {
-                    propertyId: string;
-                    operator: string;
-                    value?: undefined;
+                success: true;
+                data: {
+                    name: string;
+                    id: string;
+                    userId: string;
+                    createdAt: string;
+                    updatedAt: string;
+                    notionDatabaseId: string;
+                    userNotionIntegrationId: string | null;
+                    body: string;
+                    conditions: {
+                        propertyId: string;
+                        operator: string;
+                        value?: undefined;
+                    }[];
+                    destinationId: string;
                 }[];
-                destinationId: string;
-            }[];
+            };
             outputFormat: "json";
             status: 200;
         };
