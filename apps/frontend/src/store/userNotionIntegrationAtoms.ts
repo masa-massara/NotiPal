@@ -46,12 +46,13 @@ export const userNotionIntegrationsAtom = atom((get) => {
 
 export const createUserNotionIntegrationMutationAtom = atomWithMutation<
 	NotionIntegration, // TData
-	{ code: string }, // TVariables
+	{ integrationName: string; notionIntegrationToken: string }, // TVariables
 	Error, // TError
 	unknown // TContext
 >((getAtomInSetup) => ({
 	mutationFn: async (variables: {
-		code: string;
+		integrationName: string;
+		notionIntegrationToken: string;
 	}) => {
 		const currentIdToken = getAtomInSetup(idTokenAtom); // トークンを取得
 		if (!currentIdToken) {
@@ -59,12 +60,13 @@ export const createUserNotionIntegrationMutationAtom = atomWithMutation<
 		}
 		// サービス関数にトークンと他の変数を渡す
 		return createUserNotionIntegration({
-			code: variables.code,
+			integrationName: variables.integrationName,
+			notionIntegrationToken: variables.notionIntegrationToken,
 		});
 	},
 	onSuccess: (
 		_data: NotionIntegration,
-		_variables: { code: string },
+		_variables: { integrationName: string; notionIntegrationToken: string },
 		_context: unknown,
 	) => {
 		const queryClient: QueryClient = getAtomInSetup(queryClientAtom);

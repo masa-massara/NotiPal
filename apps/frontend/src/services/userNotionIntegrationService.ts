@@ -1,8 +1,11 @@
 import { apiClient } from "@/lib/apiClient";
+import type {
+    UserNotionIntegration as NotionIntegration,
+    CreateUserNotionIntegrationApiInput,
+} from "@notipal/common";
 import {
-	type UserNotionIntegration as NotionIntegration,
-	apiResponseSchema,
-	userNotionIntegrationSchema,
+    apiResponseSchema,
+    userNotionIntegrationSchema,
 } from "@notipal/common";
 import { z } from "zod";
 
@@ -37,9 +40,9 @@ export const getUserNotionIntegrations = async (): Promise<
  * Creates a new Notion integration for the current user.
  * @param data - Object containing the name and token for the new integration.
  */
-export const createUserNotionIntegration = async (data: {
-	code: string;
-}): Promise<NotionIntegration> => {
+export const createUserNotionIntegration = async (
+	data: CreateUserNotionIntegrationApiInput,
+): Promise<NotionIntegration> => {
 	const response = await apiClient.me["notion-integrations"].$post({
 		json: data,
 	});

@@ -79,13 +79,12 @@ function NewNotionIntegrationPage() {
 	}, [isSuccess, isError, error, router, toast]);
 
 	const onSubmit = (data: FormData) => {
-		// ★★★ ここを修正 ★★★
-		// createIntegration を呼び出す (引数は data そのもの)
 		if (createIntegration) {
-			// createIntegration が undefined でないことを確認 (型安全のため)
-			createIntegration({ code: "dummy_code_for_build" });
+			createIntegration({
+				integrationName: data.integrationName,
+				notionIntegrationToken: data.notionIntegrationToken,
+			});
 		} else {
-			// もし createIntegration が存在しない場合のフォールバック処理 (通常は起こらないはず)
 			console.error("createIntegration関数が利用できません。");
 			toast({
 				title: "エラー",
