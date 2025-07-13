@@ -1,19 +1,20 @@
 import { templateSchema } from "@notipal/common";
+// src/infrastructure/persistence/firestore/firestoreTemplateRepository.ts
+import type { Template } from "@notipal/common";
 // initializeApp, cert, getApps は main.ts で一元管理するのでここでは不要
 import {
 	type Firestore,
 	type QueryDocumentSnapshot,
 	getFirestore,
 } from "firebase-admin/firestore";
-// src/infrastructure/persistence/firestore/firestoreTemplateRepository.ts
-import type { Template } from "../../../domain/entities/template";
 import type { TemplateRepository } from "../../../domain/repositories/templateRepository";
 
 // Firestoreのコレクション名
 const TEMPLATES_COLLECTION = "templates";
 
-export const createFirestoreTemplateRepository = (): TemplateRepository => {
-	const db: Firestore = getFirestore();
+export const createFirestoreTemplateRepository = (
+	db: Firestore,
+): TemplateRepository => {
 	const collection = db.collection(TEMPLATES_COLLECTION);
 
 	const findById = async (

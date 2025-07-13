@@ -1,6 +1,5 @@
 "use client";
 
-// AppLayout is now applied by the group's layout.tsx
 import PageHeader from "@/components/layout/PageHeader";
 import {
 	AlertDialog,
@@ -12,7 +11,6 @@ import {
 	AlertDialogHeader,
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// import withAuth from "@/components/auth/withAuth"; // HOC Removed
 import { Button } from "@/components/ui/button";
 import {
 	Table,
@@ -23,18 +21,13 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useApiClient } from "@/hooks/useApiClient"; // Added import
-import {
-	deleteDestination,
-	getDestinations,
-} from "@/services/destinationService";
+import { apiClient as hc } from "@/lib/apiClient";
+import { getDestinations } from "@/services/destinationService";
 import type { Destination } from "@notipal/common";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import React from "react";
-// import { Badge } from "@/components/ui/badge"; // Badge was imported but not used, removing.
 
-// Helper to mask URL
 const maskUrl = (url: string) => {
 	try {
 		const parsedUrl = new URL(url);
@@ -52,7 +45,6 @@ const maskUrl = (url: string) => {
 function DestinationsPage() {
 	const queryClient = useQueryClient();
 	const { toast } = useToast();
-	const api = useApiClient(); // Instantiate useApiClient
 	const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
 	const [selectedDestinationId, setSelectedDestinationId] = React.useState<
 		string | null
@@ -64,12 +56,16 @@ function DestinationsPage() {
 		error,
 	} = useQuery<Destination[], Error>({
 		queryKey: ["destinations"],
-		queryFn: () => getDestinations(api), // Updated queryFn
-		enabled: !!api, // Added enabled flag
+		queryFn: getDestinations,
 	});
 
 	const deleteMutation = useMutation({
-		mutationFn: (id: string) => deleteDestination(api, id), // Updated mutationFn
+		mutationFn: async (id: string) => {
+			const res = await hc.destinations[":id"].$delete({ param: { id } });
+			if (!res.ok) {
+				throw new Error("Failed to delete destination");
+			}
+		},
 		onSuccess: () => {
 			toast({
 				title: "Success",

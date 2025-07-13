@@ -1,21 +1,18 @@
-// src/app/providers.tsx
 "use client";
 
 import { Toaster } from "@/components/ui/toaster";
-import { auth } from "@/lib/firebase"; // Firebase authインスタンス
-import { currentUserAtom, idTokenAtom } from "@/store/globalAtoms"; // 正しいatomをインポートします
+import { auth } from "@/lib/firebase";
+import { currentUserAtom, idTokenAtom } from "@/store/globalAtoms";
+import { store } from "@/store/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { type User as FirebaseUser, onAuthStateChanged } from "firebase/auth"; // Firebaseから直接インポートします
-import { Provider as JotaiProvider, createStore, useSetAtom } from "jotai";
+import { type User as FirebaseUser, onAuthStateChanged } from "firebase/auth";
+import { Provider as JotaiProvider, useSetAtom } from "jotai";
 import { queryClientAtom } from "jotai-tanstack-query";
 import type React from "react";
-import { useEffect, useState } from "react";
-
-// 以前authServiceにあったonAuthStateChangedListenerはここで直接扱います
+import { useEffect } from "react";
 
 const sharedQueryClient = new QueryClient();
 
-// Firebase Authの状態をJotai atomと同期させるコンポーネント
 const AuthStateSynchronizer = () => {
 	const setCurrentUser = useSetAtom(currentUserAtom);
 	const setIdToken = useSetAtom(idTokenAtom);
@@ -25,7 +22,6 @@ const AuthStateSynchronizer = () => {
 			auth,
 			async (user: FirebaseUser | null) => {
 				if (user) {
-					// currentUserAtomがFirebaseのUser型を期待していることを確認します
 					setCurrentUser(user);
 					const token = await user.getIdToken();
 					setIdToken(token);
@@ -35,26 +31,21 @@ const AuthStateSynchronizer = () => {
 				}
 			},
 		);
-		return () => unsubscribe(); // コンポーネントがアンマウントされる際に解除します
+		return () => unsubscribe();
 	}, [setCurrentUser, setIdToken]);
 
-	return null; // このコンポーネント自体は画面には何もレンダリングしません
+	return null;
 };
 
 export function Providers({ children }: { children: React.ReactNode }) {
-	const [jotaiStore] = useState(() => {
-		const store = createStore();
-		store.set(queryClientAtom, sharedQueryClient); // TanStack Query用のatomも初期化します
-		return store;
-	});
-
-	// authServiceからonAuthStateChangedListenerを呼び出すuseEffectは削除します
+	useEffect(() => {
+		store.set(queryClientAtom, sharedQueryClient);
+	}, []);
 
 	return (
-		<JotaiProvider store={jotaiStore}>
+		<JotaiProvider store={store}>
 			<QueryClientProvider client={sharedQueryClient}>
-				<AuthStateSynchronizer />{" "}
-				{/* AuthStateSynchronizerをここに追加します */}
+				<AuthStateSynchronizer />
 				{children}
 				<Toaster />
 			</QueryClientProvider>

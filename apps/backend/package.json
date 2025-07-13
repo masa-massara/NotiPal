@@ -1,15 +1,18 @@
 {
-	"name": "app",
-	"scripts": {
-		"dev": "bun run --hot src/main.ts",
-		"start": "bun src/main.ts",
-		"lint": "bun biome lint ./src",
-		"format": "bun biome format --write ./src",
-		"check": "bun biome check --write ./src"
-	},
+	"name": "@notipal/backend",
+	        "scripts": {
+                "dev": "bun run --hot src/main.ts",
+                "start": "bun src/main.ts",
+                "lint": "bun biome lint ./src",
+                "format": "bun biome format --write ./src",
+                "check": "bun biome check --write ./src",
+                "generate:api-types": "bun run src/main.ts & wait-on http://localhost:8080/specification && openapi-typescript http://localhost:8080/specification --output ../../packages/common/src/types/api.d.ts && kill $!",
+                "build:types": "sed -i.bak 's/export type { AppType } from \".\\/types\\/apps\\/backend\\/src\\/app\";/\\/\\/ export type { AppType } from \".\\/types\\/apps\\/backend\\/src\\/app\";/' ../../packages/common/src/index.ts && rm -rf ../../packages/common/src/types/apps/backend && tsc -p tsconfig.dts.json && mv ../../packages/common/src/index.ts.bak ../../packages/common/src/index.ts"
+        },
 	"dependencies": {
-		"@notipal/common": "workspace:*",
+		"@hono/swagger-ui": "^0.5.2",
 		"@notionhq/client": "^3.1.1",
+		"@notipal/common": "workspace:*",
 		"date-fns": "^4.1.0",
 		"firebase": "^11.8.1",
 		"firebase-admin": "^13.4.0",
@@ -18,7 +21,8 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
-		"@types/bun": "latest",
-		"@types/uuid": "^10.0.0"
+		"@hono/zod-openapi": "^0.19.9",
+		"@types/uuid": "^10.0.0",
+		"openapi-typescript": "^7.8.0"
 	}
 }

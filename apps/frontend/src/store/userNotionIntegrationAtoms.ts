@@ -34,7 +34,7 @@ export const userNotionIntegrationsQueryAtom = atomWithQuery<
 				"ID token not available. Cannot fetch Notion integrations.",
 			);
 		}
-		return getUserNotionIntegrations(currentIdToken); // サービス関数にトークンを渡す
+		return getUserNotionIntegrations(); // サービス関数にトークンを渡す
 	},
 	enabled: !!get(currentUserAtom)?.uid && !!get(idTokenAtom), // トークンが利用可能な場合のみ有効にする
 }));
@@ -46,27 +46,25 @@ export const userNotionIntegrationsAtom = atom((get) => {
 
 export const createUserNotionIntegrationMutationAtom = atomWithMutation<
 	NotionIntegration, // TData
-	{ integrationName: string; notionIntegrationToken: string }, // TVariables
+	{ code: string }, // TVariables
 	Error, // TError
 	unknown // TContext
 >((getAtomInSetup) => ({
 	mutationFn: async (variables: {
-		integrationName: string;
-		notionIntegrationToken: string;
+		code: string;
 	}) => {
 		const currentIdToken = getAtomInSetup(idTokenAtom); // トークンを取得
 		if (!currentIdToken) {
 			throw new Error("ID token not available for mutation.");
 		}
 		// サービス関数にトークンと他の変数を渡す
-		return createUserNotionIntegration(currentIdToken, {
-			integrationName: variables.integrationName,
-			notionIntegrationToken: variables.notionIntegrationToken,
+		return createUserNotionIntegration({
+			code: variables.code,
 		});
 	},
 	onSuccess: (
 		_data: NotionIntegration,
-		_variables: { integrationName: string; notionIntegrationToken: string },
+		_variables: { code: string },
 		_context: unknown,
 	) => {
 		const queryClient: QueryClient = getAtomInSetup(queryClientAtom);
@@ -90,7 +88,7 @@ export const deleteUserNotionIntegrationMutationAtom = atomWithMutation<
 		if (!currentIdToken) {
 			throw new Error("ID token not available for mutation.");
 		}
-		return deleteUserNotionIntegration(currentIdToken, integrationId); // サービス関数にトークンとIDを渡す
+		return deleteUserNotionIntegration(integrationId); // サービス関数にトークンとIDを渡す
 	},
 	onSuccess: (
 		// biome-ignore lint/suspicious/noConfusingVoidType: <explanation>

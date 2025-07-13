@@ -21,8 +21,8 @@ export const createUserNotionIntegrationUseCase = (deps: {
 			userId: input.userId,
 			integrationName: input.integrationName,
 			notionIntegrationToken: encryptedToken,
-			createdAt: now,
-			updatedAt: now,
+			createdAt: now.toISOString(),
+			updatedAt: now.toISOString(),
 		};
 		await deps.userNotionIntegrationRepository.save(newIntegration);
 		// notionIntegrationTokenはAPIレスポンスに含めない

@@ -1,79 +1,52 @@
-// Removed: import { fetchApiClient } from "../lib/apiClient";
-// MEMO: NotionDatabase, NotionPropertyは一時的な型定義（本来は共通パッケージに移すべき）
-type NotionDatabase = { id: string; name: string };
-type NotionProperty = {
-	id: string;
-	name: string;
-	type: string;
-	options?: { id: string; name: string; color?: string }[];
-};
+import { apiClient } from "../lib/apiClient";
 
-// Define a type for the API client methods expected by the service
-export interface ApiClientMethods {
-	get: (url: string, options?: RequestInit) => Promise<Response>;
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	post: (url: string, body: any, options?: RequestInit) => Promise<Response>;
-	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-	put: (url: string, body: any, options?: RequestInit) => Promise<Response>;
-	del: (url: string, options?: RequestInit) => Promise<Response>; // 'del' for delete
-}
-
-/**
- * Helper function to handle errors by attempting to parse response body.
- */
-async function handleErrorResponse(response: Response, defaultMessage: string) {
-	let errorBody = defaultMessage;
-	try {
-		const text = await response.text();
-		if (text) {
-			errorBody = `${defaultMessage}: ${response.status} ${text}`;
-		}
-	} catch (e) {
-		// Ignore if reading text fails, use default message
-	}
-	return new Error(errorBody);
-}
+import type { NotionDatabase, NotionProperty } from "@notipal/common";
 
 export async function getNotionDatabases(
-	api: ApiClientMethods,
 	integrationId: string,
 ): Promise<NotionDatabase[]> {
-	const response = await api.get(
-		`/me/notion-integrations/${integrationId}/databases`,
-	);
+	const response = await apiClient.me["notion-integrations"][
+		":integrationId"
+	].databases.$get({ param: { integrationId } });
 
 	if (!response.ok) {
-		throw await handleErrorResponse(
-			response,
-			"Failed to fetch Notion databases",
-		);
+		throw new Error("Failed to fetch Notion databases");
 	}
 
 	const data = await response.json();
-	return data as NotionDatabase[];
+	// APIレスポンスが配列であることを確認し、NotionDatabase型にマッピング
+	if (Array.isArray(data)) {
+		return (data as NotionDatabase[]).map((db) => ({
+			id: db.id,
+			name: db.name,
+		}));
+	}
+	return []; // 配列でない場合は空の配列を返す
 }
 
 export async function getNotionDatabaseProperties(
-	api: ApiClientMethods,
-	integrationId: string, // integrationId is part of the URL path, not a query param here based on original
+	integrationId: string,
 	databaseId: string,
 ): Promise<NotionProperty[]> {
-	const response = await api.get(
-		// Original path: `/notion-databases/${databaseId}/properties?integrationId=${integrationId}`
-		// Corrected to match common REST patterns if integrationId is part of the path or to use query params correctly with api.get
-		// Assuming the original path was correct and integrationId is needed as a query param for this specific endpoint
-		`/notion-databases/${databaseId}/properties?integrationId=${integrationId}`,
-	);
+	const response = await apiClient["notion-databases"][
+		":databaseId"
+	].properties.$get({ param: { databaseId }, query: { integrationId } });
 
 	if (!response.ok) {
-		throw await handleErrorResponse(
-			response,
-			"Failed to fetch Notion database properties",
-		);
+		throw new Error("Failed to fetch Notion database properties");
 	}
 
 	const data = await response.json();
-	return data as NotionProperty[];
+	// APIレスポンスが配列であることを確認し、NotionProperty型にマッピング
+	if (Array.isArray(data)) {
+		return (data as NotionProperty[]).map((prop) => ({
+			id: prop.id,
+			name: prop.name,
+			type: prop.type,
+			options: prop.options,
+		}));
+	}
+	return []; // 配列でない場合は空の配列を返す
 }
 
 // MEMO: NotionDatabase, NotionPropertyのzodスキーマが@notipal/commonに未定義のため、

@@ -1,4 +1,4 @@
-import { fetchApiClient } from "@/lib/apiClient";
+import { apiClient } from "@/lib/apiClient";
 import {
 	type UserNotionIntegration as NotionIntegration,
 	apiResponseSchema,
@@ -9,12 +9,10 @@ import { z } from "zod";
 /**
  * Fetches all Notion integrations for the current user.
  */
-export const getUserNotionIntegrations = async (
-	idToken: string,
-): Promise<NotionIntegration[]> => {
-	const response = await fetchApiClient("/me/notion-integrations", idToken, {
-		method: "GET",
-	});
+export const getUserNotionIntegrations = async (): Promise<
+	NotionIntegration[]
+> => {
+	const response = await apiClient.me["notion-integrations"].$get();
 	const json = await response.json();
 	const validationResult = apiResponseSchema(
 		z.array(userNotionIntegrationSchema),
@@ -39,19 +37,11 @@ export const getUserNotionIntegrations = async (
  * Creates a new Notion integration for the current user.
  * @param data - Object containing the name and token for the new integration.
  */
-export const createUserNotionIntegration = async (
-	idToken: string,
-	data: {
-		integrationName: string;
-		notionIntegrationToken: string;
-	},
-): Promise<NotionIntegration> => {
-	const response = await fetchApiClient("/me/notion-integrations", idToken, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify(data),
+export const createUserNotionIntegration = async (data: {
+	code: string;
+}): Promise<NotionIntegration> => {
+	const response = await apiClient.me["notion-integrations"].$post({
+		json: data,
 	});
 	const json = await response.json();
 	const validationResult = apiResponseSchema(
@@ -78,13 +68,14 @@ export const createUserNotionIntegration = async (
  * @param integrationId - The ID of the Notion integration to delete.
  */
 export const deleteUserNotionIntegration = async (
-	idToken: string,
 	integrationId: string,
 ): Promise<void> => {
-	await fetchApiClient(`/me/notion-integrations/${integrationId}`, idToken, {
-		method: "DELETE",
-	});
-	// fetchApiClient handles non-ok responses by throwing an error
-	// For DELETE requests, typically no body is returned on success (e.g. 204 No Content)
-	// so we don't call response.json()
+	const response = await apiClient.me["notion-integrations"][
+		":integrationId"
+	].$delete({ param: { integrationId } });
+	if (!response.ok) {
+		throw new Error(
+			`Failed to delete Notion integration with ID ${integrationId}`,
+		);
+	}
 };
