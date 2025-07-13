@@ -26,7 +26,7 @@ import { apiClient as hc } from "@/lib/apiClient";
 import { getDestinations } from "@/services/destinationService";
 import { getTemplates } from "@/services/templateService";
 import { getUserNotionIntegrations } from "@/services/userNotionIntegrationService";
-import { authReadyAtom, idTokenAtom } from "@/store/globalAtoms"; // idToken取得のため
+import { idTokenAtom } from "@/store/globalAtoms"; // idToken取得のため
 import type {
 	Destination,
 	UserNotionIntegration as NotionIntegration,
