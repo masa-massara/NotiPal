@@ -67,6 +67,7 @@ const firebaseAuth = getAuth(); // Firebase Authインスタンスを取得
 const authMiddleware = createAuthMiddleware(firebaseAuth);
 
 const app = new OpenAPIHono<{ Variables: { userId: string } }>()
+	.basePath("/api/v1") // Add this line
 	.doc("/specification", {
 		openapi: "3.0.0",
 		info: {
