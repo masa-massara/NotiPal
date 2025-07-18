@@ -20,6 +20,8 @@ steps:
           - "--build-arg"
           - "NEXT_PUBLIC_FIREBASE_APP_ID_PROD=${_NEXT_PUBLIC_FIREBASE_APP_ID_PROD}"
           - "--build-arg"
+          - "NEXT_PUBLIC_API_BASE_URL_DEV=${_NEXT_PUBLIC_API_BASE_URL_DEV}"
+          - "--build-arg"
           - "NEXT_PUBLIC_API_BASE_URL_PROD=${_NEXT_PUBLIC_API_BASE_URL_PROD}"
           - "--build-arg"
           - "NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD=${_NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID_PROD}" # 必要なら

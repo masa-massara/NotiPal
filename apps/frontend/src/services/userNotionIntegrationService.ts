@@ -1,11 +1,11 @@
 import { apiClient } from "@/lib/apiClient";
 import type {
-    UserNotionIntegration as NotionIntegration,
-    CreateUserNotionIntegrationApiInput,
+	CreateUserNotionIntegrationApiInput,
+	UserNotionIntegration as NotionIntegration,
 } from "@notipal/common";
 import {
-    apiResponseSchema,
-    userNotionIntegrationSchema,
+	apiResponseSchema,
+	userNotionIntegrationSchema,
 } from "@notipal/common";
 import { z } from "zod";
 
